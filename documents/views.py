@@ -122,7 +122,7 @@ def dashboard(request):
         'notifications': notifications,
         'stats': stats,
     }
-    if request.user.has_role_type('department_head') and request.user.managed_department:
+    if request.user.is_active_role('department_head') and request.user.managed_department:
         return department_head_dashboard(request)
     else:
         return render(request, 'documents/dashboard.html', context)
@@ -842,7 +842,7 @@ def department_head_dashboard(request):
     """Kafedra mudiri asosiy sahifasi"""
     
     # Faqat kafedra mudiri kirishi mumkin
-    if (not request.user.has_role_type('department_head')) or (not request.user.managed_department):
+    if (not request.user.is_active_role('department_head')) or (not request.user.managed_department):
         messages.error(request, "Sizda bu sahifaga kirish huquqi yo'q.")
         return redirect('dashboard')
     
