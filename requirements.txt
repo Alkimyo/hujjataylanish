@@ -15,3 +15,5 @@ openpyxl
 gunicorn
 whitenoise
 dj-database-url
+django-storages
+boto3
