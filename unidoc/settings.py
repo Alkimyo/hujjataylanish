@@ -57,7 +57,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'documents',
+    'documents.apps.DocumentsConfig',
     'import_export',
     'widget_tweaks',
 ]
