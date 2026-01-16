@@ -25,6 +25,15 @@ def _env_bool(value, default=False):
         return default
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
 
+def _normalize_csrf_origin(origin):
+    origin = origin.strip()
+    if not origin:
+        return None
+    parsed = urlparse(origin)
+    if parsed.scheme:
+        return origin
+    return f"https://{origin}"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = _env_bool(os.getenv("DEBUG"), default=True)
 
@@ -33,9 +42,11 @@ ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(",") if host.s
 
 csrf_origins_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if csrf_origins_raw:
-    CSRF_TRUSTED_ORIGINS = [
-        origin.strip() for origin in csrf_origins_raw.split(",") if origin.strip()
-    ]
+    CSRF_TRUSTED_ORIGINS = []
+    for raw_origin in csrf_origins_raw.split(","):
+        normalized_origin = _normalize_csrf_origin(raw_origin)
+        if normalized_origin:
+            CSRF_TRUSTED_ORIGINS.append(normalized_origin)
 
 # Application definition
 
@@ -153,7 +164,9 @@ if render_external_url:
         if parsed.hostname not in ALLOWED_HOSTS:
             ALLOWED_HOSTS.append(parsed.hostname)
         if not csrf_origins_raw:
-            CSRF_TRUSTED_ORIGINS = [render_external_url]
+            normalized_origin = _normalize_csrf_origin(render_external_url)
+            if normalized_origin:
+                CSRF_TRUSTED_ORIGINS = [normalized_origin]
         if SITE_URL == 'http://localhost:8000':
             SITE_URL = render_external_url
 
