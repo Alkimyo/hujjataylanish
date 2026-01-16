@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hujjat tekshirish - UniDoc</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .verify-container { max-width: 450px; margin: 0 auto; width: 100%; }
+        .card { border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: none; }
+        .verification-code-input {
+            font-size: 2.5rem; text-align: center; letter-spacing: 8px;
+            font-weight: 800; text-transform: uppercase; padding: 15px;
+            border: 2px solid #e2e8f0; border-radius: 12px;
+            background-color: #f8fafc; color: #2d3748;
+        }
+        .verification-code-input:focus {
+            border-color: #667eea; outline: none; background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container p-3">
+        <div class="verify-container">
+            
+            <div class="text-center mb-4">
+                <h2 class="text-white fw-bold"><i class="bi bi-shield-check"></i> DocFlow</h2>
+                <p class="text-white-50">Hujjat kodini kiriting</p>
+            </div>
+            
+            <div class="card p-4">
+                {% if error %}
+                <div class="alert alert-danger d-flex align-items-center animate__animated animate__shakeX">
+                    <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+                    <div><strong>Xatolik:</strong> {{ error }}</div>
+                </div>
+                {% endif %}
+
+                <form method="POST" id="verifyForm">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <input type="text" name="verification_code" 
+                               id="codeInput"
+                               class="form-control verification-code-input" 
+                               placeholder="____"
+                               maxlength="4"
+                               autocomplete="off"
+                               required>
+                        <div class="text-center text-muted small mt-2">
+                            4 xonali kodni kiriting
+                        </div>
+                    </div>
+                </form>
+
+                <div id="statusText" class="text-center text-primary fw-bold" style="display: none;">
+                    <div class="spinner-border spinner-border-sm me-2"></div>
+                    Qidirilmoqda...
+                </div>
+            </div>
+
+            <div class="text-center mt-4">
+                <a href="/" class="text-white-50 text-decoration-none small">
+                    <i class="bi bi-arrow-left"></i> Bosh sahifaga qaytish
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const input = document.getElementById('codeInput');
+            const form = document.getElementById('verifyForm');
+            const statusText = document.getElementById('statusText');
+
+            if (input) {
+                input.focus(); // Avtomatik fokus
+
+                input.addEventListener('input', function(e) {
+                    // Faqat harf va raqam, katta harfga o'tkazish
+                    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    e.target.value = value;
+
+                    // 4 ta belgi bo'lganda
+                    if (value.length === 4) {
+                        input.blur(); // Klaviatura yopilsin
+                        input.readOnly = true; // O'zgartirib bo'lmasin
+                        statusText.style.display = 'block'; // "Qidirilmoqda..." chiqadi
+                        
+                        // Formani yuborish
+                        form.submit();
+
+                        // 3 soniyadan keyin inputni yana ochamiz 
+                        // (Chunki fayl yuklansa, sahifa yangilanmaydi, shunda user xatolik bo'lsa qayta yozishi uchun)
+                        setTimeout(() => {
+                            input.readOnly = false;
+                            input.value = ''; // Tozalab qo'yamiz
+                            input.focus();
+                            statusText.style.display = 'none';
+                        }, 2000);
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

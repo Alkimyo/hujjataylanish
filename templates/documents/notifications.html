@@ -1,0 +1,119 @@
+{% extends 'documents/base.html' %}
+{% load static %}
+
+{% block title %}Bildirishnomalar - UniDoc{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/notifications.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="notifications-hero">
+    <div>
+        <div class="hero-eyebrow">
+            <i class="bi bi-bell"></i>
+            <span>Bildirishnomalar</span>
+        </div>
+        <h2 class="hero-title">Oxirgi yangiliklar</h2>
+        <p class="hero-subtitle">Hujjatlar harakati, tasdiqlar va status o'zgarishlari bir joyda.</p>
+    </div>
+    {% if notifications %}
+    <form method="POST" action="{% url 'mark_all_notifications_read' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-check-all"></i> Hammasini o'qish
+        </button>
+    </form>
+    {% endif %}
+</section>
+
+<div class="row">
+    <div class="col-12">
+        {% if notifications %}
+        <div class="list-group notification-list">
+            {% for notification in notifications %}
+            
+            <div class="list-group-item notification-card {% if not notification.is_read %}new-notification-anim bg-white{% else %}bg-light opacity-75{% endif %}" 
+                 id="notif-{{ notification.id }}">
+                
+                <div class="d-flex justify-content-between align-items-start">
+                    <div class="d-flex">
+                        <div class="me-3 mt-1">
+                            {% if notification.notification_type == 'document_approved' %}
+                                <div class="step-circle step-approved"><i class="bi bi-check-lg"></i></div>
+                            {% elif notification.notification_type == 'document_rejected' %}
+                                <div class="step-circle step-rejected"><i class="bi bi-x-lg"></i></div>
+                            {% else %}
+                                <div class="step-circle step-pending"><i class="bi bi-hourglass-split"></i></div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h6 class="mb-1 fw-bold">{{ notification.title }}</h6>
+                            <p class="mb-1 text-muted small">{{ notification.message }}</p>
+                            <small class="text-muted"><i class="bi bi-clock"></i> {{ notification.created_at|timesince }} oldin</small>
+                        </div>
+                    </div>
+
+                    <div>
+                        {% if not notification.is_read %}
+                        <button class="btn btn-sm btn-outline-dark mark-read-btn" 
+                                data-id="{{ notification.id }}" 
+                                data-url="{% url 'mark_notification_read' notification.id %}">
+                            <i class="bi bi-check-circle"></i> O'qish
+                        </button>
+                        {% endif %}
+                        {% if notification.document %}
+                        <a href="{% url 'document_detail' notification.document.id %}" class="btn btn-sm btn-outline-dark">
+                            Ko'rish
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if notification.workflow_data and not notification.is_read %}
+                <div class="workflow-container mt-3" id="workflow-{{ notification.id }}">
+                    
+                    {% for step in notification.workflow_data %}
+                        <div class="step-item">
+                            <div class="step-circle 
+                                {% if step.status == 'approved' %}step-approved
+                                {% elif step.status == 'rejected' %}step-rejected
+                                {% elif step.status == 'pending' %}step-pending
+                                {% else %}step-future{% endif %}">
+                                
+                                {% if step.status == 'approved' %}<i class="bi bi-check"></i>
+                                {% elif step.status == 'rejected' %}<i class="bi bi-x"></i>
+                                {% elif step.status == 'pending' %}...
+                                {% else %}{{ forloop.counter }}{% endif %}
+                            </div>
+                            <div class="step-label">{{ step.role }}</div>
+                            {% if step.approver_name != "Noma'lum" %}
+                                <div class="step-date">{{ step.approver_name }}</div>
+                            {% endif %}
+                        </div>
+
+                        {% if not forloop.last %}
+                            <div class="step-line 
+                                {% if step.status == 'approved' %}line-animated{% endif %}">
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+
+                </div>
+                {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="bi bi-bell-slash"></i>
+            <p>Bildirishnomalar yo'q</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/notifications.js' %}"></script>
+{% endblock %}

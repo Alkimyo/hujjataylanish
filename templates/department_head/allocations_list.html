@@ -1,0 +1,206 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Fan taqsimotlari - {{ department.name }}{% endblock %}
+
+{% block extra_css %}
+{% include 'department_head/styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="dept-header mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+            <div>
+                <span class="dept-badge">
+                    <i class="bi bi-diagram-3"></i> Taqsimotlar
+                </span>
+                <h2 class="dept-title mb-2">Fan taqsimotlari</h2>
+                <p class="dept-meta">{{ department.name }} kafedrasidagi fan-o'qituvchi taqsimotlari</p>
+            </div>
+            <div class="mt-3 mt-lg-0">
+                <a href="{% url 'allocation_add' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Yangi taqsimot
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-card mb-4">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">O'quv yili</label>
+                <select name="academic_year" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for year in academic_years %}
+                    <option value="{{ year.id }}" {% if selected_year == year.id|stringformat:"s" %}selected{% endif %}>
+                        {{ year.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Semestr</label>
+                <select name="semester" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for i in "12345678" %}
+                    <option value="{{ i }}" {% if selected_semester == i %}selected{% endif %}>
+                        {{ i }}-semestr
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">O'qituvchi</label>
+                <select name="teacher" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for teacher in teachers %}
+                    <option value="{{ teacher.id }}" {% if selected_teacher == teacher.id|stringformat:"s" %}selected{% endif %}>
+                        {{ teacher.get_full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Fan</label>
+                <select name="subject" class="form-select">
+                    <option value="">Barchasi</option>
+                    {% for subject in subjects %}
+                    <option value="{{ subject.id }}" {% if selected_subject == subject.id|stringformat:"s" %}selected{% endif %}>
+                        {{ subject.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-funnel"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="filter-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-8">
+                <form method="POST" action="{% url 'allocations_import' %}" enctype="multipart/form-data" class="d-flex flex-column flex-md-row gap-2">
+                    {% csrf_token %}
+                    {{ import_form.file }}
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                </form>
+                <small class="text-muted d-block mt-2">
+                    Ustunlar: teacher (username yoki email), subject_code (yoki subject_name), group, academic_year, semester
+                </small>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <span class="stat-pill">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> CSV yoki XLSX
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span class="stat-pill">
+                <i class="bi bi-hash"></i> {{ total_count }} ta taqsimot
+            </span>
+            <a href="{% url 'allocation_add' %}" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-plus-circle"></i> Qo'shish
+            </a>
+        </div>
+        <div class="card-body">
+            {% if allocations %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>O'qituvchi</th>
+                            <th>Fan</th>
+                            <th>Guruh</th>
+                            <th>O'quv yili</th>
+                            <th>Semestr</th>
+                            <th>Qo'shilgan</th>
+                            <th class="text-end">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for allocation in allocations %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ allocation.teacher.get_full_name }}</div>
+                                <small class="text-muted">{{ allocation.teacher.email }}</small>
+                            </td>
+                            <td>{{ allocation.subject.name }}</td>
+                            <td>{{ allocation.group.name }}</td>
+                            <td>{{ allocation.academic_year.name }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ allocation.semester }}</span>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{ allocation.created_at|date:"d.m.Y" }}</small>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'allocation_delete' allocation.id %}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   title="O'chirish">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if allocations.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if allocations.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ allocations.previous_page_number }}">
+                            <i class="bi bi-chevron-left"></i> Oldingi
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in allocations.paginator.page_range %}
+                    {% if num == allocations.number %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if allocations.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ allocations.next_page_number }}">
+                            Keyingi <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center empty-state">
+                <i class="bi bi-inbox display-4"></i>
+                <h4 class="mt-3">Taqsimotlar topilmadi</h4>
+                <p class="text-muted mb-3">Hozircha hech qanday taqsimot qo'shilmagan.</p>
+                <a href="{% url 'allocation_add' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Birinchi taqsimotni qo'shish
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

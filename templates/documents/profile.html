@@ -1,0 +1,225 @@
+{% extends 'documents/base.html' %}
+{% load static %}
+
+{% block title %}Profil Sozlamalari{% endblock %}
+
+{% block content %}
+<style>
+    /* Minimalistik Dizayn uchun CSS */
+    .profile-card {
+        border: none;
+        border-radius: 16px;
+        background: #fff;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.04);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .profile-card:hover {
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+
+    .avatar-circle {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 4px solid #f8f9fa;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+
+    .avatar-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 48px;
+        font-weight: bold;
+        margin: 0 auto;
+        border: 4px solid #f8f9fa;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+        color: #95a5a6;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 600;
+        margin-bottom: 2px;
+    }
+
+    .info-value {
+        font-size: 1rem;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .form-control {
+        background-color: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        font-size: 0.95rem;
+    }
+
+    .form-control:focus {
+        background-color: #fff;
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn-custom {
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #34495e;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f0f2f5;
+    }
+</style>
+
+<div class="container py-4">
+    
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="row g-4">
+        
+        <div class="col-lg-4">
+            <div class="profile-card p-4 text-center h-100">
+                <div class="mb-4 position-relative">
+                    {% if user.avatar %}
+                        <img src="{% url 'get_decrypted_avatar' user.id %}" alt="Avatar" class="avatar-circle">
+                    {% else %}
+                        <div class="avatar-placeholder shadow-sm">
+                            {{ user.first_name|first|upper }}
+                        </div>
+                    {% endif %}
+                    <span class="position-absolute bottom-0 start-50 translate-middle-x badge bg-primary rounded-pill mt-2">
+                        {{ user.get_role_display }}
+                    </span>
+                </div>
+
+                <h5 class="mb-1 text-dark fw-bold">{{ user.first_name }} {{ user.last_name }}</h5>
+                <p class="text-muted small mb-4">{{ user.username }}</p>
+
+                <div class="text-start mt-4 px-2">
+                    
+                    {% if user.full_name %}
+                    <div class="mb-3">
+                        <div class="info-label"><i class="fa-regular fa-id-card me-2"></i>Sharifi</div>
+                        <div class="info-value">{{ user.full_name }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.faculty %}
+                    <div class="mb-3">
+                        <div class="info-label"><i class="fa-solid fa-building-columns me-2"></i>Fakultet</div>
+                        <div class="info-value">{{ user.faculty.name }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.kafedra %}
+                    <div class="mb-3">
+                        <div class="info-label"><i class="fa-solid fa-laptop-code me-2"></i>Kafedra</div>
+                        <div class="info-value">{{ user.kafedra.name }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.group %}
+                    <div class="mb-3">
+                        <div class="info-label"><i class="fa-solid fa-users-line me-2"></i>Guruh</div>
+                        <div class="info-value">{{ user.group.name }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="d-flex flex-column gap-4">
+                
+                <div class="profile-card p-4">
+                    <h5 class="section-title"><i class="fa-solid fa-user-pen me-2 text-primary"></i> Login Ma'lumotlari</h5>
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Username</label>
+                                {{ profile_form.username }} </div>
+                            <div class="col-md-6">
+                                <label class="form-label text-muted small fw-bold">Email</label>
+                                {{ profile_form.email }}
+                            </div>
+                           
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <button type="submit" name="update_profile" class="btn btn-primary btn-custom shadow-sm">
+                                <i class="fa-solid fa-check me-2"></i> Saqlash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="profile-card p-3">
+                    <h5 class="section-title text-danger"><i class="fa-solid  me-2"></i> Xavfsizlik</h5>
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="row g-2">
+                            {% for field in password_form %}
+                            <div class="col-12">
+                                <label class="form-label text-muted small fw-bold">{{ field.label }}</label>
+                                {{ field }} {% if field.help_text %}
+                                    <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
+                                {% endif %}
+                                {% for error in field.errors %}
+                                    <small class="text-danger d-block">{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="mt-4 text-end">
+                            <button type="submit" name="change_password" class="btn btn-outline-danger btn-custom">
+                                <i class="fa-solid fa-key me-2"></i> Parolni yangilash
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Form inputlariga avtomatik Bootstrap class qo'shish (agar forms.py da yo'q bo'lsa)
+    document.addEventListener("DOMContentLoaded", function() {
+        var inputs = document.querySelectorAll('input[type="text"], input[type="password"], input[type="email"]');
+        inputs.forEach(function(input) {
+            input.classList.add('form-control');
+        });
+    });
+</script>
+
+{% endblock %}

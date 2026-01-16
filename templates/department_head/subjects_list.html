@@ -1,0 +1,186 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Fanlar ro'yxati - {{ department.name }}{% endblock %}
+
+{% block extra_css %}
+{% include 'department_head/styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="dept-header mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center">
+            <div>
+                <span class="dept-badge">
+                    <i class="bi bi-book"></i> Fanlar
+                </span>
+                <h2 class="dept-title mb-2">Fanlar ro'yxati</h2>
+                <p class="dept-meta">{{ department.name }} kafedrasi</p>
+            </div>
+            <div class="mt-3 mt-lg-0">
+                <a href="{% url 'subject_add' %}" class="btn btn-light">
+                    <i class="bi bi-plus-circle"></i> Yangi fan qo'shish
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-8">
+                <form method="GET" class="d-flex flex-column flex-md-row gap-2">
+                    <input type="text" name="search" class="form-control"
+                        placeholder="Fan nomi yoki kodi bo'yicha qidirish..."
+                        value="{{ search_query }}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> Qidirish
+                    </button>
+                    {% if search_query %}
+                    <a href="{% url 'subjects_list' %}" class="btn btn-outline-secondary">
+                        <i class="bi bi-x"></i> Tozalash
+                    </a>
+                    {% endif %}
+                </form>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <span class="stat-pill">
+                    <i class="bi bi-hash"></i> {{ total_count }} ta fan
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-card mb-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-8">
+                <form method="POST" action="{% url 'subjects_import' %}" enctype="multipart/form-data" class="d-flex flex-column flex-md-row gap-2">
+                    {% csrf_token %}
+                    {{ import_form.file }}
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-upload"></i> Import
+                    </button>
+                </form>
+                <small class="text-muted d-block mt-2">
+                    Ustunlar: name, code, credits, lecture_hours, practice_hours, taught_in_programs
+                </small>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <span class="stat-pill">
+                    <i class="bi bi-file-earmark-spreadsheet"></i> CSV yoki XLSX
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-card">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <strong>Fanlar ro'yxati</strong>
+            {% if search_query %}
+            <span class="badge bg-light text-dark">"{{ search_query }}" bo'yicha</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if subjects %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Fan nomi</th>
+                            <th>Kredit</th>
+                            <th>Taqsimotlar</th>
+                            <th>Qo'shilgan sana</th>
+                            <th class="text-end">Amallar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for subject in subjects %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ subject.name }}</div>
+                                {% if subject.code %}
+                                <small class="text-muted">{{ subject.code }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ subject.credits }}</span>
+                            </td>
+                            <td>
+                                {% if subject.allocations_count > 0 %}
+                                    <span class="badge bg-success">{{ subject.allocations_count }}</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">0</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ subject.created_at|date:"d.m.Y" }}</td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'subject_edit' subject.id %}"
+                                       class="btn btn-outline-primary"
+                                       title="Tahrirlash">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'subject_delete' subject.id %}"
+                                       class="btn btn-outline-danger"
+                                       title="O'chirish">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if subjects.has_other_pages %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if subjects.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ subjects.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            <i class="bi bi-chevron-left"></i> Oldingi
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in subjects.paginator.page_range %}
+                    <li class="page-item {% if subjects.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endfor %}
+
+                    {% if subjects.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ subjects.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                            Keyingi <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center empty-state">
+                <i class="bi bi-inbox display-4"></i>
+                <h4 class="mt-3">Fanlar topilmadi</h4>
+                <p class="text-muted mb-3">
+                    {% if search_query %}
+                        "{{ search_query }}" bo'yicha natija topilmadi.
+                    {% else %}
+                        Hozircha hech qanday fan qo'shilmagan.
+                    {% endif %}
+                </p>
+                <a href="{% url 'subject_add' %}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Birinchi fanni qo'shish
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

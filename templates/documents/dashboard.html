@@ -1,0 +1,477 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Bosh sahifa - UniDoc{% endblock %}
+
+{% block content %}
+<div class="dashboard-shell">
+    <section class="hero-panel">
+        <div class="hero-copy">
+            <div class="hero-eyebrow">
+                <i class="bi bi-speedometer2"></i>
+                <span>UniDoc boshqaruv markazi</span>
+            </div>
+            <h2 class="hero-title">Xush kelibsiz, {{ user.get_full_name }}!</h2>
+            <p class="hero-subtitle">
+                Hujjatlar oqimini tezkor kuzating, tasdiqlarni bir joyda boshqaring.
+            </p>
+            <div class="hero-chips">
+                <span class="chip">Aktiv rol: {{ user.get_active_role_display|default:"Foydalanuvchi" }}</span>
+                <span class="chip">Kutilayotgan tasdiqlar: {{ stats.pending_approvals }}</span>
+                <span class="chip">O'qilmagan: {{ stats.unread_notifications }}</span>
+            </div>
+        </div>
+        <div class="hero-orbit">
+            <div class="orbit-card">
+                <div class="orbit-label">Bugungi holat</div>
+                <div class="orbit-value">{{ stats.my_documents_total }}</div>
+                <div class="orbit-foot">Jami hujjatlar</div>
+            </div>
+            <div class="orbit-ring"></div>
+            <div class="orbit-ring ring-2"></div>
+        </div>
+    </section>
+
+    <div class="stats-grid">
+        <article class="stat-card stat-primary">
+            <div class="stat-meta">
+                <span>Kutilayotgan tasdiqlar</span>
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div class="stat-value">{{ stats.pending_approvals }}</div>
+        </article>
+        <article class="stat-card stat-success">
+            <div class="stat-meta">
+                <span>Tasdiqlangan</span>
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-value">{{ stats.my_approved }}</div>
+        </article>
+        <article class="stat-card stat-warning">
+            <div class="stat-meta">
+                <span>Jarayonda</span>
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-value">{{ stats.my_pending }}</div>
+        </article>
+        <article class="stat-card stat-danger">
+            <div class="stat-meta">
+                <span>Rad etilgan</span>
+                <i class="bi bi-x-circle"></i>
+            </div>
+            <div class="stat-value">{{ stats.my_rejected }}</div>
+        </article>
+    </div>
+
+    <div class="row">
+    <!-- Pending Approvals -->
+    <div class="col-md-6 mb-4">
+        <div class="card panel-card">
+            <div class="card-header panel-header">
+                <div>
+                    <h5 class="mb-1"><i class="bi bi-hourglass-split"></i> Tasdiqlash kerak</h5>
+                    <small>Navbatdagi hujjatlar</small>
+                </div>
+                <a href="{% url 'pending_approvals' %}" class="btn btn-sm btn-outline-dark">
+                    Barchasi <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if pending_approvals %}
+                <div class="list-group list-group-flush">
+                    {% for approval in pending_approvals %}
+                    <a href="{% url 'document_detail' approval.document.id %}" 
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">{{ approval.document.title }}</h6>
+                            <small class="text-muted">{{ approval.created_at|timesince }} oldin</small>
+                        </div>
+                        <p class="mb-1 text-muted small">
+                            <i class="bi bi-file-earmark"></i> {{ approval.document.document_type.name }}
+                        </p>
+                        <small class="text-muted">
+                            Yuklagan: {{ approval.document.uploaded_by.get_full_name }}
+                        </small>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-check-circle"></i>
+                    <p>Tasdiqlash uchun hujjat yo'q</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- My Recent Documents -->
+    <div class="col-md-6 mb-4">
+        <div class="card panel-card">
+            <div class="card-header panel-header">
+                <div>
+                    <h5 class="mb-1"><i class="bi bi-files"></i> Mening hujjatlarim</h5>
+                    <small>So'nggi yuklamalar</small>
+                </div>
+                <a href="{% url 'document_list' %}" class="btn btn-sm btn-outline-dark">
+                    Barchasi <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                {% if my_documents %}
+                <div class="list-group list-group-flush">
+                    {% for document in my_documents %}
+                    <a href="{% url 'document_detail' document.id %}" 
+                       class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1">{{ document.title }}</h6>
+                                <small class="text-muted">
+                                    {{ document.uploaded_at|date:"d M, Y" }}
+                                </small>
+                            </div>
+                            <span class="badge-status status-{{ document.status }}">
+                                {{ document.get_status_display }}
+                            </span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-file-earmark-plus"></i>
+                    <p>Hali hujjat yuklanmagan</p>
+                    <a href="{% url 'upload_document' %}" class="btn btn-dark btn-sm">
+                        <i class="bi bi-cloud-upload"></i> Hujjat yuklash
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Recent Notifications -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card panel-card">
+                <div class="card-header panel-header">
+                    <div>
+                        <h5 class="mb-1"><i class="bi bi-bell"></i> So'nggi bildirishnomalar</h5>
+                        <small>Oxirgi yangiliklar</small>
+                    </div>
+                    <a href="{% url 'notifications_list' %}" class="btn btn-sm btn-outline-dark">
+                        Barchasi <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                {% if notifications %}
+                <div class="list-group list-group-flush">
+                    {% for notification in notifications %}
+                    <div class="list-group-item {% if not notification.is_read %}bg-light{% endif %}">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1">
+                                {% if not notification.is_read %}
+                                <i class="bi bi-circle-fill text-primary" style="font-size: 8px;"></i>
+                                {% endif %}
+                                {{ notification.title }}
+                            </h6>
+                            <small class="text-muted">{{ notification.created_at|timesince }} oldin</small>
+                        </div>
+                        <p class="mb-1 small">{{ notification.message }}</p>
+                        {% if notification.link %}
+                        <a href="{{ notification.link }}" class="btn btn-sm btn-link p-0">
+                            Ko'rish <i class="bi bi-arrow-right"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="bi bi-bell-slash"></i>
+                    <p>Bildirishnomalar yo'q</p>
+                </div>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <section class="action-strip">
+        <div class="action-copy">
+            <h4>Tezkor amallar</h4>
+            <p>Yangi hujjat yarating, ro'yxatni ko'ring yoki tekshiring.</p>
+        </div>
+        <div class="action-buttons">
+            <a href="{% url 'upload_document' %}" class="btn btn-dark btn-custom">
+                <i class="bi bi-cloud-upload"></i> Hujjat yuklash
+            </a>
+            <a href="{% url 'document_list' %}" class="btn btn-outline-dark btn-custom">
+                <i class="bi bi-search"></i> Hujjatlarni ko'rish
+            </a>
+            <a href="{% url 'verify_document' %}" class="btn btn-outline-dark btn-custom">
+                <i class="bi bi-shield-check"></i> Hujjat tekshirish
+            </a>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap');
+
+:root {
+    --ink: #1b1d1f;
+    --muted: #5b6770;
+    --panel: #f8f6f1;
+    --panel-strong: #f2efe8;
+    --sunset: #f2a65a;
+    --sea: #4ea5a6;
+    --leaf: #6abf69;
+    --rose: #e06a5f;
+}
+
+.dashboard-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    color: var(--ink);
+}
+
+.hero-panel {
+    position: relative;
+    padding: 28px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top left, rgba(242, 166, 90, 0.25), transparent 45%),
+        radial-gradient(circle at bottom right, rgba(78, 165, 166, 0.2), transparent 55%),
+        linear-gradient(135deg, #f8f6f1 0%, #f1efe6 100%);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 24px;
+    overflow: hidden;
+}
+
+.hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.hero-title {
+    font-family: "Fraunces", serif;
+    font-size: clamp(1.8rem, 2vw + 1rem, 2.6rem);
+    margin: 12px 0 8px;
+}
+
+.hero-subtitle {
+    max-width: 420px;
+    color: var(--muted);
+}
+
+.hero-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.chip {
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    font-size: 0.85rem;
+}
+
+.hero-orbit {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 200px;
+}
+
+.orbit-card {
+    z-index: 2;
+    background: #ffffff;
+    border-radius: 18px;
+    padding: 18px 22px;
+    text-align: center;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+}
+
+.orbit-label {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+}
+
+.orbit-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 6px 0;
+}
+
+.orbit-foot {
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.orbit-ring {
+    position: absolute;
+    width: 180px;
+    height: 180px;
+    border-radius: 50%;
+    border: 2px dashed rgba(78, 165, 166, 0.3);
+    animation: spin 18s linear infinite;
+}
+
+.orbit-ring.ring-2 {
+    width: 240px;
+    height: 240px;
+    border-color: rgba(242, 166, 90, 0.25);
+    animation-duration: 26s;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.stat-card {
+    padding: 16px 18px;
+    border-radius: 18px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.08);
+}
+
+.stat-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-top: 12px;
+}
+
+.stat-primary { border-top: 3px solid var(--sea); }
+.stat-success { border-top: 3px solid var(--leaf); }
+.stat-warning { border-top: 3px solid var(--sunset); }
+.stat-danger { border-top: 3px solid var(--rose); }
+
+.panel-card {
+    border-radius: 20px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+    background: var(--panel);
+    border: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.panel-header h5 {
+    margin: 0;
+}
+
+.panel-header small {
+    color: var(--muted);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 40px 24px;
+    color: var(--muted);
+}
+
+.empty-state i {
+    font-size: 2.6rem;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.action-strip {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    border-radius: 22px;
+    background: linear-gradient(130deg, #f4f3ee 0%, #efe7df 100%);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.action-copy h4 {
+    font-family: "Fraunces", serif;
+    margin-bottom: 6px;
+}
+
+.action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.panel-card,
+.stat-card,
+.hero-panel,
+.action-strip {
+    animation: fadeUp 0.6s ease both;
+}
+
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+    .hero-panel {
+        padding: 20px;
+    }
+    .action-strip {
+        text-align: center;
+    }
+    .action-copy {
+        width: 100%;
+    }
+    .action-buttons {
+        width: 100%;
+        justify-content: center;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+{% endblock %}

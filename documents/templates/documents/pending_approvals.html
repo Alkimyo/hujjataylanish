@@ -1,0 +1,214 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Kutilayotgan tasdiqlar - DocFlow{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2><i class="bi bi-hourglass-split"></i> Kutilayotgan tasdiqlar</h2>
+    <p class="text-muted">Sizning tasdiqingizni kutayotgan hujjatlar</p>
+</div>
+
+{% if pending_approvals %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle"></i>
+    <strong>{{ pending_approvals.count }}</strong> ta hujjat sizning tasdiqingizni kutmoqda
+</div>
+
+<div class="row">
+    {% for approval in pending_approvals %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 border-warning shadow-sm">
+            <div class="card-header bg-warning bg-opacity-10 border-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> 
+                        Bosqich {{ approval.step_order }}
+                    </h5>
+                    <span class="badge bg-warning">Kutilmoqda</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title mb-3">{{ approval.document.title }}</h5>
+                
+                <div class="mb-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Hujjat turi:</small>
+                            <strong>{{ approval.document.document_type.name }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Yuklagan:</small>
+                            <strong>{{ approval.document.uploaded_by.get_full_name }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Fakultet:</small>
+                            <strong>{{ approval.document.uploaded_by.faculty }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Kafedra:</small>
+                            <strong>{{ approval.document.uploaded_by.department }}</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-light mb-3">
+                    <small class="text-muted">
+                        <i class="bi bi-clock"></i> Yuklangan: {{ approval.document.uploaded_at|date:"d M, Y H:i" }}
+                    </small>
+                    <br>
+                    <small class="text-muted">
+                        <i class="bi bi-stopwatch"></i> Kutilmoqda: {{ approval.created_at|timesince }}
+                    </small>
+                </div>
+                
+                {% if approval.document.description %}
+                <p class="card-text text-muted small mb-3">
+                    {{ approval.document.description|truncatewords:20 }}
+                </p>
+                {% endif %}
+                
+                <div class="d-grid gap-2">
+                    <a href="{% url 'document_detail' approval.document.id %}" 
+                       class="btn btn-primary">
+                        <i class="bi bi-eye"></i> Ko'rish va tasdiqlash
+                    </a>
+                    <a href="{% url 'download_document' approval.document.id %}" 
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-download"></i> Yuklab olish
+                    </a>
+                </div>
+            </div>
+            <div class="card-footer bg-white border-top-0">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    Joriy bosqich: {{ approval.document.current_step }} / {{ approval.document.document_type.total_steps }}
+                </small>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Quick Actions -->
+<div class="card mt-4 bg-light">
+    <div class="card-body text-center">
+        <h5 class="mb-3">Tezkor harakatlar</h5>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <button onclick="approveAll()" class="btn btn-success btn-custom" 
+                    title="Bu funksiya ishlab chiqilmoqda">
+                <i class="bi bi-check-all"></i> Hammasini tasdiqlash
+            </button>
+            <a href="{% url 'document_list' %}?status=pending_approval" 
+               class="btn btn-outline-primary btn-custom">
+                <i class="bi bi-filter"></i> Barcha jarayondagi hujjatlar
+            </a>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<!-- Empty State -->
+<div class="card">
+    <div class="card-body text-center py-5">
+        <i class="bi bi-check-circle text-success" style="font-size: 5rem;"></i>
+        <h3 class="mt-4 text-muted">Ajoyib!</h3>
+        <p class="text-muted fs-5">Hozircha tasdiqlash uchun hujjat yo'q</p>
+        <p class="text-muted">
+            Sizga yangi hujjatlar yuborilganda bildirishnoma olasiz
+        </p>
+        
+        <div class="d-flex justify-content-center gap-3 mt-4">
+            <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                <i class="bi bi-house"></i> Bosh sahifaga qaytish
+            </a>
+            <a href="{% url 'document_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-files"></i> Hujjatlarni ko'rish
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Statistics -->
+{% if pending_approvals %}
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card bg-warning bg-opacity-10 border-warning">
+            <div class="card-body text-center">
+                <h3 class="text-warning mb-2">{{ pending_approvals.count }}</h3>
+                <p class="mb-0 small">Kutilayotgan</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-success bg-opacity-10 border-success">
+            <div class="card-body text-center">
+                <h3 class="text-success mb-2" id="approvedToday">-</h3>
+                <p class="mb-0 small">Bugun tasdiqlangan</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-info bg-opacity-10 border-info">
+            <div class="card-body text-center">
+                <h3 class="text-info mb-2" id="avgResponseTime">-</h3>
+                <p class="mb-0 small">O'rtacha javob vaqti</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Help Card -->
+<div class="card mt-4">
+    <div class="card-header bg-white border-0">
+        <h5 class="mb-0"><i class="bi bi-question-circle"></i> Yordam</h5>
+    </div>
+    <div class="card-body">
+        <h6 class="fw-bold mb-3">Hujjatni qanday tasdiqlash kerak?</h6>
+        <ol class="mb-0">
+            <li class="mb-2">
+                Hujjat kartochkasidagi <strong>"Ko'rish va tasdiqlash"</strong> tugmasini bosing
+            </li>
+            <li class="mb-2">
+                Hujjat mazmunini diqqat bilan ko'rib chiqing
+            </li>
+            <li class="mb-2">
+                Agar hujjat talablarga javob bersa, <strong>"Tasdiqlash"</strong> tugmasini bosing
+            </li>
+            <li class="mb-2">
+                Agar muammo bo'lsa, <strong>"Rad etish"</strong> tugmasini bosing va sababini ko'rsating
+            </li>
+            <li>
+                Kerakli bo'lsa, izoh qoldiring (bu ixtiyoriy)</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function approveAll() {
+    if (confirm('Barcha hujjatlarni tasdiqlashni xohlaysizmi? Bu jarayon qaytarib bo\'lmaydi.')) {
+        alert('Bu funksiya ishlab chiqilmoqda. Xavfsizlik sababli har bir hujjatni alohida tasdiqlash tavsiya etiladi.');
+    }
+}
+
+// Load statistics
+document.addEventListener('DOMContentLoaded', function() {
+    // Simulated statistics - in production, fetch from API
+    setTimeout(() => {
+        document.getElementById('approvedToday').textContent = '12';
+        document.getElementById('avgResponseTime').textContent = '2.5 soat';
+    }, 500);
+});
+
+// Auto-refresh every 60 seconds
+setInterval(function() {
+    // Check for new approvals
+    const currentCount = {{ pending_approvals.count|default:0 }};
+    // In production, fetch new count from API and show notification if changed
+}, 
+60000);
+</script>
+{% endblock %}

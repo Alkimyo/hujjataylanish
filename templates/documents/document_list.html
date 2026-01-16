@@ -1,0 +1,423 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Hujjatlar - UniDoc{% endblock %}
+
+{% block content %}
+<section class="list-hero">
+    <div class="hero-copy">
+        <div class="hero-eyebrow">
+            <i class="bi bi-files"></i>
+            <span>Hujjatlar markazi</span>
+        </div>
+        <h2 class="hero-title">Hujjatlar ro'yxati</h2>
+        <p class="hero-subtitle">Tezkor filtrlash, status bo'yicha kuzatish va hujjat tarixini ko'rish.</p>
+        <div class="hero-actions">
+            <a href="{% url 'upload_document' %}" class="btn btn-dark btn-custom">
+                <i class="bi bi-cloud-upload"></i> Yangi hujjat
+            </a>
+            <a href="{% url 'verify_document' %}" class="btn btn-outline-dark btn-custom">
+                <i class="bi bi-shield-check"></i> Hujjat tekshirish
+            </a>
+        </div>
+    </div>
+    <div class="hero-panel">
+        <div class="hero-panel-card">
+            <div class="panel-title">Tezkor filterlar</div>
+            <div class="panel-metric">Hujjatlarni tur, holat va muallif bo'yicha saralang.</div>
+        </div>
+        <div class="hero-panel-glow"></div>
+    </div>
+</section>
+
+<div class="card mb-4 filter-panel">
+    <div class="card-body">
+        <form method="GET" id="filterForm" class="filter-grid">
+            
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Hujjat turi</label>
+                <select name="document_type" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for dt in document_types %}
+                    <option value="{{ dt.id }}" {% if filters.document_type == dt.id|stringformat:"s" %}selected{% endif %}>
+                        {{ dt.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Holati</label>
+                <select name="status" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    <option value="uploaded" {% if filters.status == 'uploaded' %}selected{% endif %}>Yuklangan</option>
+                    <option value="pending_approval" {% if filters.status == 'pending_approval' %}selected{% endif %}>Jarayonda</option>
+                    <option value="approved" {% if filters.status == 'approved' %}selected{% endif %}>Tasdiqlangan</option>
+                    <option value="rejected" {% if filters.status == 'rejected' %}selected{% endif %}>Rad etilgan</option>
+                </select>
+            </div>
+
+            {% if programs %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Yo'nalish</label>
+                <select name="program" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for prog in programs %}
+                    <option value="{{ prog.id }}" {% if filters.program == prog.id|stringformat:"s" %}selected{% endif %}>
+                        {{ prog.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if subjects %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Fan</label>
+                <select name="subject" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for subj in subjects %}
+                    <option value="{{ subj.id }}" {% if filters.subject == subj.id|stringformat:"s" %}selected{% endif %}>
+                        {{ subj.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if academic_years %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">O'quv yili</label>
+                <select name="academic_year" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for year in academic_years %}
+                    <option value="{{ year.id }}" {% if filters.academic_year == year.id|stringformat:"s" %}selected{% endif %}>
+                        {{ year.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if can_filter_author %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Muallif</label>
+                <input type="text" name="author" class="form-control form-select-sm auto-search" 
+                       placeholder="F.I.Sh yozing..." value="{{ filters.author|default:'' }}" autocomplete="off">
+            </div>
+            {% endif %}
+
+            {% if departments %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Kafedra</label>
+                <select name="department" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for dept in departments %}
+                    <option value="{{ dept.id }}" {% if filters.department == dept.id|stringformat:"s" %}selected{% endif %}>
+                        {{ dept.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if faculties %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Fakultet</label>
+                <select name="faculty" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for fac in faculties %}
+                    <option value="{{ fac.id }}" {% if filters.faculty == fac.id|stringformat:"s" %}selected{% endif %}>
+                        {{ fac.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            {% if universities %}
+            <div class="filter-item">
+                <label class="form-label small fw-bold text-muted">Universitet</label>
+                <select name="university" class="form-select form-select-sm auto-submit">
+                    <option value="">Barchasi</option>
+                    {% for uni in universities %}
+                    <option value="{{ uni.id }}" {% if filters.university == uni.id|stringformat:"s" %}selected{% endif %}>
+                        {{ uni.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endif %}
+
+            <div class="filter-item d-flex align-items-end">
+                <a href="{% url 'document_list' %}" class="btn btn-sm btn-outline-dark w-100">
+                    <i class="bi bi-x-circle"></i> Tozalash
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="documents-table">
+    {% include 'documents/_document_table.html' %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const filterForm = document.getElementById('filterForm');
+const tableContainer = document.getElementById('documents-table');
+let searchTimer = null;
+
+function buildQuery() {
+    if (!filterForm) return '';
+    const formData = new FormData(filterForm);
+    const params = new URLSearchParams();
+    formData.forEach((value, key) => {
+        if (value !== '') {
+            params.append(key, value);
+        }
+    });
+    return params.toString();
+}
+
+function loadDocuments(pushHistory = true) {
+    if (!tableContainer) return;
+    const query = buildQuery();
+    const url = `${window.location.pathname}${query ? `?${query}` : ''}`;
+
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        tableContainer.innerHTML = html;
+        if (pushHistory) {
+            window.history.replaceState({}, '', url);
+        }
+    })
+    .catch(() => {
+        // Fall back to full reload if AJAX fails
+        window.location.href = url;
+    });
+}
+
+if (filterForm) {
+    filterForm.querySelectorAll('.auto-submit').forEach(select => {
+        select.addEventListener('change', () => {
+            loadDocuments();
+        });
+    });
+
+    filterForm.querySelectorAll('.auto-search').forEach(input => {
+        input.addEventListener('input', () => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+                loadDocuments();
+            }, 400);
+        });
+
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                clearTimeout(searchTimer);
+                loadDocuments();
+            }
+        });
+    });
+}
+
+if (tableContainer) {
+    tableContainer.addEventListener('click', (event) => {
+        const target = event.target.closest('a');
+        if (!target) return;
+        if (target.getAttribute('href') && target.getAttribute('href').includes('?')) {
+            event.preventDefault();
+            fetch(target.getAttribute('href'), {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                tableContainer.innerHTML = html;
+                window.history.replaceState({}, '', target.getAttribute('href'));
+            })
+            .catch(() => {
+                window.location.href = target.getAttribute('href');
+            });
+        }
+    });
+}
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap');
+
+    :root {
+        --ink: #1b1d1f;
+        --muted: #5b6770;
+        --panel: #f5f1ea;
+        --panel-strong: #efe7df;
+        --sunset: #f2a65a;
+        --sea: #4ea5a6;
+    }
+
+    .list-hero {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 24px;
+        align-items: center;
+        padding: 24px;
+        border-radius: 24px;
+        background:
+            radial-gradient(circle at top left, rgba(78, 165, 166, 0.2), transparent 45%),
+            radial-gradient(circle at bottom right, rgba(242, 166, 90, 0.22), transparent 55%),
+            linear-gradient(135deg, #f8f6f1 0%, #f1efe6 100%);
+        margin-bottom: 24px;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        color: var(--ink);
+    }
+
+    .hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.85rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+    }
+
+    .hero-title {
+        font-family: "Fraunces", serif;
+        font-size: clamp(1.8rem, 2vw + 1rem, 2.4rem);
+        margin: 12px 0 8px;
+    }
+
+    .hero-subtitle {
+        color: var(--muted);
+        max-width: 420px;
+    }
+
+    .hero-actions {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hero-panel {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 180px;
+    }
+
+    .hero-panel-card {
+        background: #ffffff;
+        border-radius: 18px;
+        padding: 20px 22px;
+        box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+        z-index: 2;
+        text-align: center;
+    }
+
+    .panel-title {
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.1em;
+        color: var(--muted);
+    }
+
+    .panel-metric {
+        margin-top: 8px;
+        font-size: 0.95rem;
+        color: var(--ink);
+    }
+
+    .hero-panel-glow {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(78, 165, 166, 0.25), transparent 60%);
+    }
+
+    .filter-panel {
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        background: var(--panel);
+        box-shadow: 0 14px 30px rgba(0, 0, 0, 0.05);
+    }
+
+    .filter-panel .card-body {
+        background: transparent;
+    }
+
+    .filter-grid {
+        gap: 18px;
+    }
+
+    .filter-item label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    #documents-table .card {
+        border-radius: 20px;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 16px 34px rgba(0, 0, 0, 0.06);
+    }
+
+    .table thead th {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.7rem;
+    }
+
+    .table tbody tr {
+        transition: background 0.2s ease;
+    }
+
+    .table tbody tr:hover {
+        background: rgba(78, 165, 166, 0.08);
+    }
+
+    .badge.bg-success-subtle,
+    .badge.bg-warning-subtle,
+    .badge.bg-danger-subtle,
+    .badge.bg-secondary-subtle {
+        font-weight: 600;
+    }
+
+    /* CSS Grid Layout */
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .filter-item {
+        width: 100%;
+    }
+    
+    .form-select-sm, .form-control-sm {
+        height: 34px;
+    }
+
+    @media (max-width: 768px) {
+        .list-hero {
+            padding: 18px;
+        }
+        .hero-actions {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}

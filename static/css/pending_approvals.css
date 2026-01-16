@@ -1,0 +1,79 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,600&display=swap');
+
+:root {
+    --ink: #1b1d1f;
+    --muted: #5b6770;
+    --panel: #f5f1ea;
+    --sunset: #f2a65a;
+}
+
+.approvals-hero {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    border-radius: 24px;
+    background:
+        radial-gradient(circle at top left, rgba(242, 166, 90, 0.18), transparent 45%),
+        linear-gradient(135deg, #f8f6f1 0%, #f1efe6 100%);
+    margin-bottom: 24px;
+    font-family: "Space Grotesk", system-ui, sans-serif;
+    color: var(--ink);
+}
+
+.hero-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+
+.hero-title {
+    font-family: "Fraunces", serif;
+    font-size: clamp(1.8rem, 2vw + 1rem, 2.4rem);
+}
+
+.hero-subtitle {
+    color: var(--muted);
+}
+
+.hero-card {
+    background: #fff;
+    border-radius: 18px;
+    padding: 18px 24px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+    text-align: center;
+}
+
+.hero-card-title {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+}
+
+.hero-card-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-top: 6px;
+}
+
+.approval-card {
+    border-radius: 18px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.08);
+}
+
+.approval-card .card-header {
+    background: var(--panel);
+    border: none;
+}
+
+.approval-card .badge {
+    font-size: 0.75rem;
+}

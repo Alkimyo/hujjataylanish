@@ -1,0 +1,196 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Tizimdan chiqish - UniDoc{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --logout-ink: #122026;
+        --logout-muted: #5a6970;
+        --logout-accent: #0f3d3e;
+        --logout-gold: #f2a65a;
+        --logout-sand: #f7f2e8;
+        --logout-border: rgba(15, 61, 62, 0.18);
+        --logout-shadow: 0 24px 50px rgba(12, 26, 28, 0.18);
+    }
+
+    .logout-shell {
+        background:
+            radial-gradient(circle at 15% 20%, rgba(242, 166, 90, 0.22), transparent 45%),
+            radial-gradient(circle at 85% 0%, rgba(15, 61, 62, 0.2), transparent 40%),
+            linear-gradient(140deg, #ffffff 0%, var(--logout-sand) 100%);
+        border-radius: 28px;
+        padding: 28px;
+        box-shadow: var(--logout-shadow);
+        border: 1px solid rgba(15, 61, 62, 0.1);
+    }
+
+    .logout-hero {
+        background: linear-gradient(135deg, var(--logout-accent), #1b6f6f);
+        color: #fff;
+        border-radius: 22px;
+        padding: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .logout-hero::after {
+        content: "";
+        position: absolute;
+        top: -30px;
+        right: -30px;
+        width: 140px;
+        height: 140px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.35), transparent 70%);
+    }
+
+    .logout-title {
+        font-family: "Fraunces", serif;
+        font-weight: 600;
+    }
+
+    .logout-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 6px 14px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        font-size: 0.85rem;
+    }
+
+    .logout-actions .btn {
+        border-radius: 12px;
+    }
+
+    .logout-pill {
+        background: #fff;
+        border: 1px solid var(--logout-border);
+        border-radius: 16px;
+        padding: 12px 16px;
+        color: var(--logout-ink);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        box-shadow: 0 10px 24px rgba(12, 26, 28, 0.08);
+    }
+
+    .logout-card {
+        border-radius: 20px;
+        border: 1px solid rgba(15, 61, 62, 0.1);
+        box-shadow: 0 10px 24px rgba(12, 26, 28, 0.06);
+    }
+
+    .logout-card h6 {
+        font-weight: 600;
+    }
+
+    .contact-chip {
+        border-radius: 999px;
+        padding: 8px 14px;
+        border: 1px solid rgba(15, 61, 62, 0.18);
+        background: #fff;
+        color: var(--logout-ink);
+        text-decoration: none;
+    }
+
+    .logout-countdown {
+        font-weight: 600;
+        color: var(--logout-accent);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="logout-shell">
+            <div class="logout-hero mb-4">
+                <span class="logout-badge mb-3">
+                    <i class="bi bi-shield-check"></i> Xavfsiz chiqish
+                </span>
+                <h2 class="logout-title mb-2">Muvaffaqiyatli chiqildi!</h2>
+                <p class="mb-0 text-white-50">
+                    Siz tizimdan muvaffaqiyatli chiqdingiz. Ma'lumotlaringiz himoyalandi.
+                </p>
+            </div>
+
+            <div class="row g-3 align-items-stretch">
+                <div class="col-md-7">
+                    <div class="logout-pill mb-3">
+                        <i class="bi bi-clock-history fs-4 text-warning"></i>
+                        <div>
+                            <div class="fw-semibold">Avtomatik yo'naltirish</div>
+                            <div class="small text-muted">
+                                <span id="redirectCountdown" class="logout-countdown">10</span> soniyadan keyin login sahifasiga o'tasiz.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="logout-actions d-grid gap-2">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right"></i> Qayta kirish
+                        </a>
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="logout-card card h-100">
+                        <div class="card-body">
+                            <h6 class="mb-3">
+                                <i class="bi bi-lightbulb text-warning"></i> Xavfsizlik maslahatlari
+                            </h6>
+                            <ul class="list-unstyled mb-0 small text-muted">
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Umumiy kompyuterdan foydalanganda doim tizimdan chiqing
+                                </li>
+                                <li class="mb-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Parolingizni hech kimga aytmang
+                                </li>
+                                <li class="mb-0">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                    Parolingizni muntazam ravishda o'zgartiring
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logout-card card mt-4">
+                <div class="card-body text-center">
+                    <p class="mb-2 text-muted">Yordam kerakmi?</p>
+                    <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                        <a href="#" class="contact-chip">
+                            <i class="bi bi-envelope"></i> support@docflow.uz
+                        </a>
+                        <a href="#" class="contact-chip">
+                            <i class="bi bi-telephone"></i> +998 71 123-45-67
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto redirect to login after 10 seconds
+    let countdown = 10;
+    const countdownEl = document.getElementById('redirectCountdown');
+    const redirectTimer = setInterval(() => {
+        countdown--;
+        if (countdownEl) {
+            countdownEl.textContent = String(Math.max(countdown, 0));
+        }
+        if (countdown <= 0) {
+            clearInterval(redirectTimer);
+            window.location.href = "{% url 'login' %}";
+        }
+    }, 1000);
+</script>
+{% endblock %}

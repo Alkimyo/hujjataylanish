@@ -1,0 +1,14 @@
+django
+psycopg2-binary
+celery[redis]
+qrcode[pil]
+PyPDF2
+reportlab
+pillow
+dotenv
+django-crispy-forms
+django-filter
+python-decouple 
+django-import-export
+django-widget-tweaks
+openpyxl

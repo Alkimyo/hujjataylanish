@@ -1,0 +1,299 @@
+<!-- allocation_form.html -->
+{% extends 'documents/base.html' %}
+
+{% block title %}Yangi taqsimot - {{ department.name }}{% endblock %}
+
+{% block extra_css %}
+{% include 'department_head/styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="dept-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item">
+                            <a class="link-light text-decoration-none" href="{% url 'department_head_dashboard' %}">Bosh sahifa</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a class="link-light text-decoration-none" href="{% url 'allocations_list' %}">Taqsimotlar</a>
+                        </li>
+                        <li class="breadcrumb-item active text-white-50" aria-current="page">Yangi taqsimot</li>
+                    </ol>
+                </nav>
+                <span class="dept-badge">
+                    <i class="bi bi-diagram-3"></i> Biriktirish
+                </span>
+                <h2 class="dept-title mb-2">O'qituvchiga fan biriktirish</h2>
+                <p class="dept-meta">{{ department.name }}</p>
+            </div>
+
+            <div class="form-shell">
+                <form method="POST" id="allocationForm">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- O'qituvchi -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.teacher.label }} <span class="text-danger">*</span></label>
+                                {{ form.teacher }}
+                                {% if form.teacher.errors %}
+                                    <div class="text-danger mt-1">{{ form.teacher.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Fan -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.subject.label }} <span class="text-danger">*</span></label>
+                                {{ form.subject }}
+                                {% if form.subject.errors %}
+                                    <div class="text-danger mt-1">{{ form.subject.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <!-- Guruh -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.group.label }} <span class="text-danger">*</span></label>
+                                {{ form.group }}
+                                {% if form.group.errors %}
+                                    <div class="text-danger mt-1">{{ form.group.errors.0 }}</div>
+                                {% endif %}
+                                
+                                <!-- Guruh ma'lumotlari -->
+                                <div id="groupInfo" class="alert alert-light mt-2" style="display: none;">
+                                    <small>
+                                        <i class="bi bi-info-circle"></i> 
+                                        <span id="groupAdmissionInfo"></span><br>
+                                        <span id="groupCourseInfo"></span>
+                                    </small>
+                                </div>
+                            </div>
+
+                            <!-- O'quv yili -->
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ form.academic_year.label }} <span class="text-danger">*</span></label>
+                                {{ form.academic_year }}
+                                <div class="form-text">
+                                    Masalan: 2025-2026, 2024-2025, 2023-2024
+                                </div>
+                                {% if form.academic_year.errors %}
+                                    <div class="text-danger mt-1">{{ form.academic_year.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Semestr -->
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.semester.label }} <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                {{ form.semester }}
+                                <button type="button" class="btn btn-outline-secondary" id="calculateSemester">
+                                    <i class="bi bi-calculator"></i> Kurs bo'yicha hisoblash
+                                </button>
+                            </div>
+                           
+                            {% if form.semester.errors %}
+                                <div class="text-danger mt-1">{{ form.semester.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Saqlash
+                            </button>
+                            <a href="{% url 'allocations_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Bekor qilish
+                            </a>
+                        </div>
+                    </form>
+            </div>
+
+
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const groupSelect = document.getElementById('group_select');
+    const academicYearInput = document.getElementById('id_academic_year');
+    const semesterInput = document.getElementById('semester_input');
+    const calculateBtn = document.getElementById('calculateSemester');
+    const groupInfoDiv = document.getElementById('groupInfo');
+    const groupAdmissionInfo = document.getElementById('groupAdmissionInfo');
+    const groupCourseInfo = document.getElementById('groupCourseInfo');
+    
+    // Guruhdan qabul qilingan yilni olish
+    function getAdmissionYearFromGroup(groupName) {
+        // 354-20 -> 2020, 355-21 -> 2021, 354-19 -> 2019
+        const match = groupName.match(/[-_](\d{2})$/);
+        if (match) {
+            const yearSuffix = parseInt(match[1]);
+            return 2000 + yearSuffix;
+        }
+        return null;
+    }
+    
+    // O'quv yilidan boshlanish yilini olish
+    function getStartYearFromAcademicYear(academicYear) {
+        // 2025-2026 -> 2025
+        const match = academicYear.match(/^(\d{4})-\d{4}$/);
+        return match ? parseInt(match[1]) : null;
+    }
+    
+    // Kursni hisoblash
+    function calculateCourse(admissionYear, academicStartYear) {
+        return academicStartYear - admissionYear + 1;
+    }
+    
+    // Kursga mos semestr oralig'ini olish
+    function getSemesterRangeForCourse(course) {
+        const minSemester = (course * 2) - 1;
+        const maxSemester = course * 2;
+        return { min: minSemester, max: maxSemester };
+    }
+    
+    // Guruh va o'quv yili o'zgarishida
+    function updateGroupInfo() {
+        const selectedGroup = groupSelect.options[groupSelect.selectedIndex];
+        const academicYear = academicYearInput.value;
+        
+        if (selectedGroup.value && academicYear) {
+            const groupName = selectedGroup.text;
+            const admissionYear = getAdmissionYearFromGroup(groupName);
+            const academicStartYear = getStartYearFromAcademicYear(academicYear);
+            
+            if (admissionYear && academicStartYear) {
+                const course = calculateCourse(admissionYear, academicStartYear);
+                const semesterRange = getSemesterRangeForCourse(course);
+                
+                // Ma'lumotlarni ko'rsatish
+                groupAdmissionInfo.textContent = 
+                    `Guruh: ${groupName}, Qabul qilingan: ${admissionYear}-yil`;
+                groupCourseInfo.textContent = 
+                    `${academicYear} o'quv yilida: ${course}-kurs, Semestrlar: ${semesterRange.min}-${semesterRange.max}`;
+                groupInfoDiv.style.display = 'block';
+                
+                // Semestr input uchun placeholder
+                semesterInput.placeholder = `${semesterRange.min}-${semesterRange.max}`;
+                
+                return {
+                    course: course,
+                    semesterRange: semesterRange
+                };
+            }
+        }
+        
+        groupInfoDiv.style.display = 'none';
+        return null;
+    }
+    
+    // Guruh tanlanganda
+    if (groupSelect) {
+        groupSelect.addEventListener('change', function() {
+            updateGroupInfo();
+        });
+    }
+    
+    // O'quv yili o'zgarishida
+    if (academicYearInput) {
+        academicYearInput.addEventListener('input', function() {
+            updateGroupInfo();
+        });
+    }
+    
+    // "Kurs bo'yicha hisoblash" tugmasi
+    if (calculateBtn) {
+        calculateBtn.addEventListener('click', function() {
+            const info = updateGroupInfo();
+            if (info && info.semesterRange) {
+                // Semestrni o'rtacha qiymatga o'rnatish
+                const avgSemester = Math.floor((info.semesterRange.min + info.semesterRange.max) / 2);
+                semesterInput.value = avgSemester;
+                
+                // Xabar ko'rsatish
+                const toast = document.createElement('div');
+                toast.className = 'alert alert-success alert-dismissible fade show mt-2';
+                toast.innerHTML = `
+                    Semestr ${avgSemester} ga o'rnatildi (${info.course}-kurs uchun ${info.semesterRange.min}-${info.semesterRange.max} oralig'i)
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+                semesterInput.parentNode.parentNode.appendChild(toast);
+                
+                // 3 soniyadan keyin xabarni yashirish
+                setTimeout(() => {
+                    toast.remove();
+                }, 3000);
+            }
+        });
+    }
+    
+    // Hozirgi o'quv yilini avtomatik kiriting
+    function setCurrentAcademicYear() {
+        if (!academicYearInput.value) {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth() + 1; // 1-12
+            
+            let academicStartYear;
+            if (currentMonth >= 9) { // Sentabr - Dekabr
+                academicStartYear = currentYear;
+            } else { // Yanvar - Avgust
+                academicStartYear = currentYear - 1;
+            }
+            
+            const academicYearString = `${academicStartYear}-${academicStartYear + 1}`;
+            academicYearInput.value = academicYearString;
+            
+            // Guruh tanlangan bo'lsa, ma'lumotlarni yangilash
+            if (groupSelect.value) {
+                updateGroupInfo();
+            }
+        }
+    }
+    
+    // Sahifa yuklanganda
+    setCurrentAcademicYear();
+    
+    // Form yuborilishidan oldin tekshirish
+    document.getElementById('allocationForm').addEventListener('submit', function(e) {
+        const groupName = groupSelect.options[groupSelect.selectedIndex]?.text || '';
+        const academicYear = academicYearInput.value;
+        
+        if (groupName && academicYear) {
+            const admissionYear = getAdmissionYearFromGroup(groupName);
+            const academicStartYear = getStartYearFromAcademicYear(academicYear);
+            
+            if (admissionYear && academicStartYear) {
+                const course = calculateCourse(admissionYear, academicStartYear);
+                const semesterRange = getSemesterRangeForCourse(course);
+                const semesterValue = parseInt(semesterInput.value) || 0;
+                
+                if (semesterValue < semesterRange.min || semesterValue > semesterRange.max) {
+                    if (!confirm(
+                        `${course}-kurs uchun semestr ${semesterRange.min}-${semesterRange.max} oralig'ida bo'lishi kerak. ` +
+                        `Siz ${semesterValue}-semestrni kiritdingiz. Davom etishni istaysizmi?`
+                    )) {
+                        e.preventDefault();
+                        semesterInput.focus();
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,246 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}{{ title }} - {{ department.name }}{% endblock %}
+
+{% block extra_css %}
+{% include 'department_head/styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+            <div class="dept-header mb-4">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-2">
+                        <li class="breadcrumb-item">
+                            <a class="link-light text-decoration-none" href="{% url 'department_head_dashboard' %}">Bosh sahifa</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a class="link-light text-decoration-none" href="{% url 'subjects_list' %}">Fanlar</a>
+                        </li>
+                        <li class="breadcrumb-item active text-white-50" aria-current="page">{{ title }}</li>
+                    </ol>
+                </nav>
+                <span class="dept-badge">
+                    <i class="bi bi-journal-text"></i> Fan boshqaruvi
+                </span>
+                <h2 class="dept-title mb-2">{{ title }}</h2>
+                <p class="dept-meta">{{ department.name }} kafedrasi</p>
+            </div>
+
+            <div class="form-shell">
+                <form method="POST" id="subjectForm">
+                        {% csrf_token %}
+
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {{ form.non_field_errors }}
+                        </div>
+                        {% endif %}
+
+                        <div class="row">
+                            <!-- Fan nomi -->
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">{{ form.name.label }} <span class="text-danger">*</span></label>
+                                {{ form.name }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">{{ form.name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Fan kodi -->
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">{{ form.code.label }} <span class="text-danger">*</span></label>
+                                {{ form.code }}
+                                {% if form.code.errors %}
+                                    <div class="text-danger small">{{ form.code.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Soatlar -->
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ form.credits.label }}</label>
+                                {{ form.credits }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ form.lecture_hours.label }}</label>
+                                {{ form.lecture_hours }}
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label class="form-label">{{ form.practice_hours.label }}</label>
+                                {{ form.practice_hours }}
+                            </div>
+                            <div class="col-md-3 mb-3 d-flex align-items-end">
+                                <div class="form-check form-switch">
+                                    {{ form.is_active }}
+                                    <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                        {{ form.is_active.label }}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- YANGI: Yo'nalishlar tanlash (Checkboxlar) -->
+                        <div class="mb-4">
+                            <label class="form-label" id="programsLabel">{{ form.programs.label }}</label>
+                            <div class="programs-panel p-3" style="max-height: 300px; overflow-y: auto;">
+                                {% if form.programs.field.choices %}
+                                    <div class="row row-cols-1 row-cols-md-2 g-2">
+                                        {% for code, name in form.programs.field.choices %}
+                                        <div class="col">
+                                            <div class="form-check">
+                                                <input type="checkbox" 
+                                                       name="programs" 
+                                                       value="{{ code }}"
+                                                       id="program_{{ forloop.counter }}" 
+                                                       class="form-check-input program-checkbox"
+                                                       {% if code in form.programs.value %}checked{% endif %}>
+                                                <label for="program_{{ forloop.counter }}" 
+                                                       class="form-check-label small">
+                                                    <strong>{{ code }}</strong>: {{ name|slice:"7:" }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                {% else %}
+                                    <div class="text-center py-3 text-muted">
+                                        <i class="bi bi-exclamation-circle"></i>
+                                        Kafedrada yo'nalishlar mavjud emas
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-muted">
+                                    Tanlangan yo'nalishlar: 
+                                    <span id="selectedCount" class="badge bg-primary">0</span>
+                                    <span id="selectedPrograms" class="ms-2"></span>
+                                </small>
+                                {% if form.programs.errors %}
+                                    <div class="text-danger small">{{ form.programs.errors.0 }}</div>
+                                {% endif %}
+                                <div class="form-text">
+                                    Fan qaysi yo'nalishlarda o'tilishini belgilang
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tugmalar -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-circle"></i> Saqlash
+                            </button>
+                            <a href="{% url 'subjects_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x"></i> Bekor qilish
+                            </a>
+                            
+                            {% if is_edit %}
+                            <a href="{% url 'subject_delete' subject.id %}" class="btn btn-outline-danger ms-auto">
+                                <i class="bi bi-trash"></i> O'chirish
+                            </a>
+                            {% endif %}
+                        </div>
+                </form>
+            </div>
+
+            <!-- Qo'shimcha ma'lumot -->
+            <div class="alert alert-info mt-3">
+                <h6><i class="bi bi-info-circle"></i> Yo'nalish tanlash haqida:</h6>
+                <ul class="mb-0 small">
+                    <li>Fan bir nechta yo'nalishda o'tilishi mumkin</li>
+                    <li>Tanlangan yo'nalishlar vergul bilan ajratilgan holda saqlanadi</li>
+                    <li>Keyinchalik taqsimot qilishda faqat tanlangan yo'nalishdagi guruhlar ko'rinadi</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('.program-checkbox');
+    const selectedCount = document.getElementById('selectedCount');
+    const selectedPrograms = document.getElementById('selectedPrograms');
+    
+    // Tanlanganlar sonini yangilash
+    function updateSelection() {
+        const checked = Array.from(checkboxes).filter(cb => cb.checked);
+        const count = checked.length;
+        
+        // Soni
+        selectedCount.textContent = count;
+        
+        // Kodlar
+        const codes = checked.map(cb => {
+            const label = cb.nextElementSibling;
+            return label.querySelector('strong').textContent;
+        });
+        
+        selectedPrograms.textContent = codes.join(', ');
+        
+        // Agar 0 bo'lsa
+        if (count === 0) {
+            selectedPrograms.textContent = 'Yo\'nalish tanlanmagan';
+        }
+    }
+    
+    // Har bir checkbox uchun event listener
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', updateSelection);
+    });
+    
+    // Boshlang'ich holatni hisoblash
+    updateSelection();
+    
+    // Hamma checkboxlarni tanlash/o'chirish
+    const selectAllBtn = document.createElement('button');
+    selectAllBtn.type = 'button';
+    selectAllBtn.className = 'btn btn-sm btn-outline-secondary me-2';
+    selectAllBtn.innerHTML = '<i class="bi bi-check-all"></i> Hammasini tanlash';
+    
+    const deselectAllBtn = document.createElement('button');
+    deselectAllBtn.type = 'button';
+    deselectAllBtn.className = 'btn btn-sm btn-outline-secondary';
+    deselectAllBtn.innerHTML = '<i class="bi bi-x-circle"></i> Hammasini bekor qilish';
+    
+    // Tugmalarni qo'shish
+    const programField = document.getElementById('programsLabel');
+    if (programField) {
+        const buttonGroup = document.createElement('div');
+        buttonGroup.className = 'mt-2';
+        buttonGroup.appendChild(selectAllBtn);
+        buttonGroup.appendChild(deselectAllBtn);
+        programField.parentNode.insertBefore(buttonGroup, programField.nextSibling);
+    }
+    
+    // Hammasini tanlash
+    selectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(cb => cb.checked = true);
+        updateSelection();
+    });
+    
+    // Hammasini o'chirish
+    deselectAllBtn.addEventListener('click', function() {
+        checkboxes.forEach(cb => cb.checked = false);
+        updateSelection();
+    });
+    
+    // Form yuborilganda tanlanganlarni tekshirish
+    document.getElementById('subjectForm').addEventListener('submit', function(e) {
+        const checkedCount = Array.from(checkboxes).filter(cb => cb.checked).length;
+        
+        if (checkedCount === 0) {
+            if (!confirm("Hech qanday yo'nalish tanlanmadi. Davom etishni istaysizmi?")) {
+                e.preventDefault();
+                checkboxes[0]?.focus();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

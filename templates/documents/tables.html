@@ -1,0 +1,24 @@
+{% for document in documents %}
+<tr>
+    <td class="ps-3">
+        <div class="fw-bold text-primary">{{ document.title }}</div>
+        <small class="text-muted">{{ document.file_name }}</small>
+    </td>
+    <td>{{ document.document_type.name }}</td>
+    <td>{{ document.subject.name|default:"-" }} / {{ document.related_group.name|default:"-" }}</td>
+    <td>{{ document.uploaded_by.get_full_name }}</td>
+    <td>{{ document.uploaded_at|date:"d.m.Y" }}</td>
+    <td>
+        <span class="badge bg-{% if document.status == 'approved' %}success{% elif document.status == 'rejected' %}danger{% else %}warning{% endif %}">
+            {{ document.get_status_display }}
+        </span>
+    </td>
+    <td class="text-end pe-3">
+        <a href="{% url 'document_detail' document.id %}" class="btn btn-sm btn-outline-primary">Ko'rish</a>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7" class="text-center py-4 text-muted">Hujjatlar topilmadi.</td>
+</tr>
+{% endfor %}

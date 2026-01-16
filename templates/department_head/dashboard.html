@@ -1,0 +1,226 @@
+{% extends 'documents/base.html' %}
+
+{% block title %}Kafedra mudiri paneli - {{ department.name }}{% endblock %}
+
+{% block extra_css %}
+{% include 'department_head/styles.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="dept-hero mb-4">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <span class="dept-badge">
+                    <i class="bi bi-building"></i> Kafedra boshqaruvi
+                </span>
+                <h2 class="dept-title mb-2">Boshqaruv paneli</h2>
+                <p class="dept-meta">{{ department.name }} • {{ department.faculty.name }}</p>
+            </div>
+            <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
+                <a href="{% url 'subject_add' %}" class="btn btn-light me-2 mb-2">
+                    <i class="bi bi-plus-circle"></i> Yangi fan
+                </a>
+                <a href="{% url 'allocation_add' %}" class="btn btn-outline-light mb-2">
+                    <i class="bi bi-link-45deg"></i> Fan biriktirish
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dept-stat">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Fanlar</div>
+                        <div class="stat-value">{{ stats.subjects_count }}</div>
+                        <a href="{% url 'subjects_list' %}" class="text-decoration-none text-muted small">
+                            Batafsil <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="icon-wrap">
+                        <i class="bi bi-book"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dept-stat">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">O'qituvchilar</div>
+                        <div class="stat-value">{{ stats.teachers_count }}</div>
+                        <span class="text-muted small">Kafedra xodimlari</span>
+                    </div>
+                    <div class="icon-wrap">
+                        <i class="bi bi-people"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dept-stat">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">Taqsimotlar</div>
+                        <div class="stat-value">{{ stats.allocations_count }}</div>
+                        <a href="{% url 'allocations_list' %}" class="text-decoration-none text-muted small">
+                            Batafsil <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="icon-wrap">
+                        <i class="bi bi-diagram-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6 col-xl-3">
+            <div class="dept-stat">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-label">O'quv yili</div>
+                        <div class="stat-value" style="font-size: 1.2rem;">
+                            {{ stats.active_year.name|default:"Belgilanmagan" }}
+                        </div>
+                        <span class="text-muted small">Joriy o'quv yili</span>
+                    </div>
+                    <div class="icon-wrap">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="activity-card mb-4">
+        <div class="card-header d-flex align-items-center justify-content-between">
+            <h5 class="mb-0"><i class="bi bi-lightning-charge"></i> Tezkor harakatlar</h5>
+            <span class="stat-pill">
+                <i class="bi bi-stars"></i> Kafedra rejasi
+            </span>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a href="{% url 'subject_add' %}" class="action-tile">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-semibold">Yangi fan</div>
+                                <div class="text-muted small">Kafedra fanlari</div>
+                            </div>
+                            <i class="bi bi-plus-circle fs-3 text-success"></i>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a href="{% url 'allocation_add' %}" class="action-tile">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-semibold">Fan biriktirish</div>
+                                <div class="text-muted small">O'qituvchiga</div>
+                            </div>
+                            <i class="bi bi-link-45deg fs-3 text-primary"></i>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a href="{% url 'subjects_list' %}" class="action-tile">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-semibold">Fanlar ro'yxati</div>
+                                <div class="text-muted small">Umumiy ko'rinish</div>
+                            </div>
+                            <i class="bi bi-list-ul fs-3 text-info"></i>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-12 col-md-6 col-xl-3">
+                    <a href="{% url 'allocations_list' %}" class="action-tile">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <div>
+                                <div class="fw-semibold">Taqsimotlar</div>
+                                <div class="text-muted small">Biriktirishlar</div>
+                            </div>
+                            <i class="bi bi-diagram-3 fs-3 text-warning"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-12 col-xl-6">
+            <div class="activity-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> So'nggi qo'shilgan fanlar</h5>
+                    <a href="{% url 'subjects_list' %}" class="btn btn-sm btn-outline-secondary">
+                        Barchasi
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_subjects %}
+                    <div class="list-group list-group-flush">
+                        {% for subject in recent_subjects %}
+                        <div class="list-group-item px-0 border-0">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>{{ subject.name }}</strong>
+                                    <div class="text-muted small">
+                                        <i class="bi bi-clock"></i> {{ subject.created_at|date:"d.m.Y H:i" }}
+                                    </div>
+                                </div>
+                                <span class="badge bg-info">{{ subject.credits }} kredit</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center empty-state">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mt-2 mb-0">Fanlar mavjud emas</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-6">
+            <div class="activity-card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="bi bi-clock-history"></i> So'nggi taqsimotlar</h5>
+                    <a href="{% url 'allocations_list' %}" class="btn btn-sm btn-outline-secondary">
+                        Barchasi
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% if recent_allocations %}
+                    <div class="list-group list-group-flush">
+                        {% for allocation in recent_allocations %}
+                        <div class="list-group-item px-0 border-0">
+                            <div>
+                                <strong>{{ allocation.teacher.get_full_name }}</strong>
+                                <div class="text-muted small">{{ allocation.subject.name }}</div>
+                                <div class="text-muted small">
+                                    {{ allocation.group.name }} • {{ allocation.academic_year.name }} • {{ allocation.semester }}-semestr
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center empty-state">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mt-2 mb-0">Taqsimotlar mavjud emas</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

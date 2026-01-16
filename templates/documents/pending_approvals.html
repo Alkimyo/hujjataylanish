@@ -1,0 +1,180 @@
+{% extends 'documents/base.html' %}
+{% load static %}
+
+{% block title %}Kutilayotgan tasdiqlar - UniDoc{% endblock %}
+
+{% block content %}
+<section class="approvals-hero">
+    <div>
+        <div class="hero-eyebrow">
+            <i class="bi bi-hourglass-split"></i>
+            <span>Tasdiqlar paneli</span>
+        </div>
+        <h2 class="hero-title">Kutilayotgan tasdiqlar</h2>
+        <p class="hero-subtitle">Sizning tasdiqingizni kutayotgan hujjatlarni bir joyda boshqaring.</p>
+    </div>
+    <div class="hero-card">
+        <div class="hero-card-title">Jami kutilayotgan</div>
+        <div class="hero-card-value">{{ pending_approvals.count }}</div>
+    </div>
+</section>
+
+{% if pending_approvals %}
+<div class="alert alert-info shadow-sm">
+    <i class="bi bi-info-circle"></i>
+    <strong>{{ pending_approvals.count }}</strong> ta hujjat sizning tasdiqingizni kutmoqda
+</div>
+
+<div class="row">
+    {% for approval in pending_approvals %}
+    <div class="col-md-6 mb-4">
+        <div class="card h-100 approval-card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-earmark-text"></i> 
+                        Bosqich {{ approval.step_order }}
+                    </h5>
+                    <span class="badge bg-warning text-dark">Kutilmoqda</span>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title mb-3">{{ approval.document.title }}</h5>
+                
+                <div class="mb-3">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <small class="text-muted d-block">Hujjat turi:</small>
+                            <strong>{{ approval.document.document_type.name }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Yuklagan:</small>
+                            <strong>{{ approval.document.uploaded_by.get_full_name }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Fakultet:</small>
+                            <strong>{{ approval.document.uploaded_by.faculty.name|default:"-" }}</strong>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted d-block">Kafedra:</small>
+                            <strong>{{ approval.document.uploaded_by.department.name|default:"-" }}</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="alert alert-light mb-3 border">
+                    <small class="text-muted d-block">
+                        <i class="bi bi-clock"></i> Yuklangan: {{ approval.document.uploaded_at|date:"d M, Y H:i" }}
+                    </small>
+                    <small class="text-muted">
+                        <i class="bi bi-stopwatch"></i> Kutilmoqda: {{ approval.document.uploaded_at|timesince }}
+                    </small>
+                </div>
+                
+                {% if approval.document.description %}
+                <p class="card-text text-muted small mb-3">
+                    {{ approval.document.description|truncatewords:20 }}
+                </p>
+                {% endif %}
+                
+                <div class="row g-2">
+                    <div class="col-6">
+                        <form method="post" action="{% url 'approve_document' approval.document.id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success w-100" onclick="return confirm('Hujjatni tasdiqlaysizmi?')">
+                                <i class="bi bi-check-lg"></i> Tasdiqlash
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-6">
+                        <button type="button" class="btn btn-danger w-100" data-bs-toggle="modal" data-bs-target="#rejectModal{{ approval.document.id }}">
+                            <i class="bi bi-x-lg"></i> Rad etish
+                        </button>
+                    </div>
+
+                    <div class="col-6">
+                        <a href="{% url 'document_detail' approval.document.id %}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-eye"></i> Ko'rish
+                        </a>
+                    </div>
+                    <div class="col-6">
+                         <a href="{% url 'download_document' approval.document.id %}" class="btn btn-outline-dark w-100">
+                            <i class="bi bi-download"></i> Yuklash
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card-footer bg-white border-top-0">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle"></i> 
+                    Joriy bosqich: {{ approval.document.current_step }}
+                </small>
+            </div>
+        </div>
+
+        <div class="modal fade" id="rejectModal{{ approval.document.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <form method="post" action="{% url 'reject_document' approval.document.id %}">
+                        {% csrf_token %}
+                        <div class="modal-header">
+                            <h5 class="modal-title text-danger">Hujjatni rad etish</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p>Siz <strong>{{ approval.document.title }}</strong> hujjatini rad etmoqchisiz.</p>
+                            <div class="mb-3">
+                                <label class="form-label">Rad etish sababi <span class="text-danger">*</span></label>
+                                <textarea name="comment" class="form-control" rows="3" required placeholder="Masalan: Hujjatda imlo xatolar mavjud..."></textarea>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Bekor qilish</button>
+                            <button type="submit" class="btn btn-danger">Rad etish</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="card shadow-sm border-0">
+    <div class="card-body text-center py-5">
+        <div class="mb-4">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 4rem;"></i>
+        </div>
+        <h3 class="text-muted">Hammasi joyida!</h3>
+        <p class="text-muted fs-5">Hozircha sizning tasdiqingizni kutayotgan hujjatlar yo'q.</p>
+        
+        <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">
+            <a href="{% url 'dashboard' %}" class="btn btn-dark">
+                <i class="bi bi-house"></i> Bosh sahifa
+            </a>
+            <a href="{% url 'document_list' %}" class="btn btn-outline-dark">
+                <i class="bi bi-files"></i> Barcha hujjatlar
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card mt-4 border-0 shadow-sm">
+    <div class="card-body">
+        <h6 class="fw-bold mb-3"><i class="bi bi-lightbulb text-warning"></i> Eslatma</h6>
+        <p class="text-muted small mb-0">
+            Hujjatni tasdiqlaganingizdan so'ng, u avtomatik ravishda keyingi bosqichga o'tadi. 
+            Agar rad etsangiz, hujjat muallifiga rad etish sababi bilan xabar yuboriladi va hujjat "Rad etilgan" maqomini oladi.
+        </p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pending_approvals.css' %}">
+{% endblock %}
