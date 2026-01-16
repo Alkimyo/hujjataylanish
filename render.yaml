@@ -7,3 +7,9 @@ services:
     envVars:
       - key: WEB_CONCURRENCY
         value: "1"
+      - key: MEDIA_ROOT
+        value: "/var/data/media"
+    disk:
+      name: media
+      mountPath: /var/data
+      sizeGB: 1
