@@ -605,64 +605,48 @@ function updateNotificationBadges(count) {
 }
 
 (function() {
-    if (!window.EventSource) {
-        return;
-    }
+    const countUrl = '{% url "api_notification_count" %}';
+    const pollIntervalMs = 30000;
+    let pollTimer = null;
 
-    let source = null;
-    let reconnectTimer = null;
-
-    function connect() {
-        if (source || document.hidden) {
+    function fetchCount() {
+        if (document.hidden) {
             return;
         }
-
-        source = new EventSource('{% url "api_notification_stream" %}');
-        source.addEventListener('count', (event) => {
-            try {
-                const data = JSON.parse(event.data || '{}');
-                if (typeof data.unread_count === 'number') {
+        fetch(countUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(res => (res.ok ? res.json() : null))
+            .then(data => {
+                if (data && typeof data.unread_count === 'number') {
                     updateNotificationBadges(data.unread_count);
                 }
-            } catch (err) {
-                console.error('SSE parse error', err);
-            }
-        });
-
-        source.onerror = () => {
-            if (source) {
-                source.close();
-                source = null;
-            }
-            if (!document.hidden && !reconnectTimer) {
-                reconnectTimer = setTimeout(() => {
-                    reconnectTimer = null;
-                    connect();
-                }, 5000);
-            }
-        };
+            })
+            .catch(() => {});
     }
 
-    function disconnect() {
-        if (source) {
-            source.close();
-            source = null;
+    function startPolling() {
+        if (pollTimer) {
+            return;
         }
-        if (reconnectTimer) {
-            clearTimeout(reconnectTimer);
-            reconnectTimer = null;
+        fetchCount();
+        pollTimer = setInterval(fetchCount, pollIntervalMs);
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
         }
     }
 
     document.addEventListener('visibilitychange', () => {
         if (document.hidden) {
-            disconnect();
+            stopPolling();
         } else {
-            connect();
+            startPolling();
         }
     });
 
-    connect();
+    startPolling();
 })();
 </script>
 {% block extra_js %}{% endblock %}
