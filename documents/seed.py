@@ -183,6 +183,7 @@ def _create_users(universities):
     student_role = Role.get_role_by_code("STUDENT_BASIC")
     head_role = Role.get_role_by_code("DEPARTMENT_HEAD_BASIC")
     dean_role = Role.get_role_by_code("FACULTY_DEAN_BASIC")
+    director_role = Role.get_role_by_code("DIRECTOR_BASIC")
 
     main_university = universities[0]
     main_faculty = main_university.faculties.first()
@@ -209,6 +210,8 @@ def _create_users(universities):
         university=main_university,
         faculty=main_faculty,
     )
+    if teacher_role:
+        dean.add_role(teacher_role)
     if dean_role:
         dean.add_role(dean_role)
     if dean.active_role is None and dean_role:
@@ -226,6 +229,8 @@ def _create_users(universities):
         faculty=main_faculty,
         department=main_department,
     )
+    if teacher_role:
+        head.add_role(teacher_role)
     if head_role:
         head.add_role(head_role)
     if head.active_role is None and head_role:
@@ -248,6 +253,20 @@ def _create_users(universities):
     if teacher.active_role is None and teacher_role:
         teacher.active_role = teacher_role
         teacher.save()
+
+    director = ensure_user(
+        "director",
+        "director12345",
+        email="director@example.com",
+        university=main_university,
+    )
+    if teacher_role:
+        director.add_role(teacher_role)
+    if director_role:
+        director.add_role(director_role)
+    if director.active_role is None and director_role:
+        director.active_role = director_role
+        director.save()
 
     student1 = ensure_user(
         "student1",
