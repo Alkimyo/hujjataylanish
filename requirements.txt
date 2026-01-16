@@ -12,3 +12,6 @@ python-decouple
 django-import-export
 django-widget-tweaks
 openpyxl
+gunicorn
+whitenoise
+dj-database-url

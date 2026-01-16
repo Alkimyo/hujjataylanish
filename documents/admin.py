@@ -8,7 +8,7 @@ from django.urls import reverse
 from .models import (
     User, Role, University, Faculty, Department, Program, Group,
     Subject, TeachingAllocation, AcademicYear, AuditLog, JobRun,
-    DocumentType, Document, ApprovalStep, ApprovalLog, Notification
+    DocumentType, Document, ApprovalStep, ApprovalLog, Notification, RequestLog, SecurityPolicy
 )
 from import_export import resources, fields
 from import_export.admin import ImportMixin
@@ -465,6 +465,77 @@ class TeachingAllocationAdmin(ImportMixin, admin.ModelAdmin):
         return super().get_queryset(request).select_related(
             'teacher', 'subject', 'group', 'academic_year', 'department'
         )
+
+
+@admin.register(RequestLog)
+class RequestLogAdmin(admin.ModelAdmin):
+    list_display = [
+        'created_at',
+        'method',
+        'path',
+        'status_code',
+        'user',
+        'ip_address',
+        'duration_ms',
+    ]
+    list_filter = [
+        'method',
+        'status_code',
+        'created_at',
+    ]
+    search_fields = [
+        'path',
+        'query_string',
+        'user__username',
+        'ip_address',
+    ]
+    readonly_fields = [
+        'created_at',
+        'user',
+        'method',
+        'path',
+        'query_string',
+        'status_code',
+        'ip_address',
+        'user_agent',
+        'referrer',
+        'duration_ms',
+        'request_body',
+        'request_bytes',
+        'response_bytes',
+    ]
+
+
+@admin.register(SecurityPolicy)
+class SecurityPolicyAdmin(admin.ModelAdmin):
+    list_display = [
+        'id',
+        'rate_limit_per_minute',
+        'burst',
+        'findtime_seconds',
+        'maxretry',
+        'bantime_seconds',
+        'updated_at',
+    ]
+    readonly_fields = ['created_at', 'updated_at']
+    fieldsets = (
+        ('Limits', {
+            'fields': (
+                'rate_limit_per_minute',
+                'burst',
+                'findtime_seconds',
+                'maxretry',
+                'bantime_seconds',
+            )
+        }),
+        ('Whitelist', {
+            'fields': ('whitelist',),
+            'description': 'IP yoki CIDR qiymatlarini vergul yoki yangi qatorda kiriting.'
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
 
 # ==================== DOCUMENT TYPE ADMIN ====================
 

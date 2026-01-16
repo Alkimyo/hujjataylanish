@@ -1333,6 +1333,69 @@ class AuditLog(models.Model):
         return f"{self.action} - {user_label} - {self.created_at}"
 
 
+class RequestLog(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    method = models.CharField(max_length=10)
+    path = models.TextField()
+    query_string = models.TextField(blank=True)
+    status_code = models.IntegerField()
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(blank=True)
+    referrer = models.TextField(blank=True)
+    duration_ms = models.IntegerField(null=True, blank=True)
+    request_body = models.JSONField(null=True, blank=True)
+    request_bytes = models.IntegerField(null=True, blank=True)
+    response_bytes = models.IntegerField(null=True, blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'request_logs'
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['created_at']),
+            models.Index(fields=['status_code']),
+            models.Index(fields=['method']),
+            models.Index(fields=['path']),
+        ]
+
+    def __str__(self):
+        user_label = self.user.username if self.user else "anonymous"
+        return f"{self.method} {self.path} - {self.status_code} - {user_label}"
+
+
+class SecurityPolicy(models.Model):
+    rate_limit_per_minute = models.IntegerField(default=30)
+    burst = models.IntegerField(default=15)
+    findtime_seconds = models.IntegerField(default=120)
+    maxretry = models.IntegerField(default=3)
+    bantime_seconds = models.IntegerField(default=-1)
+    whitelist = models.TextField(blank=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'security_policies'
+        verbose_name = "Security Policy"
+        verbose_name_plural = "Security Policies"
+
+    def __str__(self):
+        return f"SecurityPolicy #{self.pk}"
+
+    def get_whitelist(self):
+        raw = self.whitelist or ""
+        tokens = []
+        for part in raw.replace(",", "\n").splitlines():
+            item = part.strip()
+            if item:
+                tokens.append(item)
+        return tokens
+
+    def get_ignoreip_value(self):
+        return " ".join(self.get_whitelist())
+
+
 class JobRun(models.Model):
     STATUS_CHOICES = [
         ('running', 'Running'),
