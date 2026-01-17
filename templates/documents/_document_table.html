@@ -1,7 +1,7 @@
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         {% if documents %}
-        <div class="table-responsive">
+        <div class="table-responsive d-none d-md-block">
             <table class="table table-hover align-middle mb-0 stacked-table">
                 <thead class="table-light">
                     <tr>
@@ -65,6 +65,47 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+        <div class="d-block d-md-none p-3 mobile-doc-list">
+            {% for document in documents %}
+            <div class="card shadow-sm border-0 mb-2 mobile-doc-card">
+                <div class="card-body py-2 mobile-doc-body">
+                    <div class="d-flex justify-content-between align-items-start mb-1">
+                        <span class="text-muted small">{{ forloop.counter }}</span>
+                        <span class="badge
+                            {% if document.status == 'approved' %} bg-success-subtle text-success
+                            {% elif document.status == 'rejected' %} bg-danger-subtle text-danger
+                            {% elif document.status == 'pending_approval' %} bg-warning-subtle text-warning
+                            {% else %} bg-secondary-subtle text-secondary
+                            {% endif %}">
+                            {{ document.get_status_display|default:document.status }}
+                        </span>
+                    </div>
+
+                    <a href="{% url 'document_detail' document.id %}" class="fw-semibold d-inline-block text-decoration-none mobile-doc-title">
+                        {{ document.title|default:document.file_name }}
+                    </a>
+
+                    <div class="text-muted small mt-1 mobile-doc-meta">
+                        <div class="mobile-doc-chip">{{ document.document_type.name }}</div>
+                        {% if document.subject or document.related_group %}
+                        <div class="mobile-doc-chip">
+                            {% if document.subject %}{{ document.subject.name }}{% endif %}
+                            {% if document.related_group %} — {{ document.related_group.name }}{% endif %}
+                        </div>
+                        {% endif %}
+                        <div class="mobile-doc-chip">
+                            {% if document.uploaded_by.first_name or document.uploaded_by.last_name %}
+                                {{ document.uploaded_by.last_name }} {{ document.uploaded_by.first_name }} {{ document.uploaded_by.middle_name|default:"" }}
+                            {% else %}
+                                {{ document.uploaded_by.username }}
+                            {% endif %}
+                        </div>
+                        <div class="mobile-doc-chip">{{ document.uploaded_at|date:"d.m.Y H:i" }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
         {% else %}
         <div class="text-center py-5">
