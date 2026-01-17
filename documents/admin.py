@@ -718,7 +718,7 @@ class DocumentAdmin(admin.ModelAdmin):
     get_expected_approver.short_description = 'Joriy holat'
     
     def view_link(self, obj):
-        url = reverse('documents:document_detail', args=[obj.id])
+        url = reverse('document_detail', args=[obj.id])
         return format_html('<a href="{}" target="_blank" class="button">Ko\'rish</a>', url)
     view_link.short_description = 'Harakatlar'
     
