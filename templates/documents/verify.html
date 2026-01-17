@@ -16,7 +16,7 @@
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         .verify-container { max-width: 450px; margin: 0 auto; width: 100%; }
-        .card { border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: none; }
+        .card { border-radius: 20px; box-shadow: 0 18px 40px rgba(0,0,0,0.2); border: none; }
         .verification-code-input {
             font-size: 2.5rem; text-align: center; letter-spacing: 8px;
             font-weight: 800; text-transform: uppercase; padding: 15px;
@@ -27,6 +27,68 @@
             border-color: #667eea; outline: none; background-color: #fff;
             box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
         }
+
+        .verify-result {
+            border-radius: 14px;
+            padding: 12px 14px;
+            margin-top: 16px;
+            display: none;
+        }
+
+        .verify-result.success {
+            background: #e7f7ef;
+            color: #0f5132;
+            border: 1px solid rgba(25, 135, 84, 0.25);
+        }
+
+        .verify-result.error {
+            background: #fdecea;
+            color: #842029;
+            border: 1px solid rgba(220, 53, 69, 0.25);
+        }
+
+        .verify-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .verify-chip {
+            font-size: 0.78rem;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: rgba(102, 126, 234, 0.12);
+            color: #2d3748;
+        }
+
+        .verify-guide {
+            background: rgba(255, 255, 255, 0.18);
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            border-radius: 16px;
+            padding: 14px 16px;
+            color: #f8f9ff;
+            font-size: 0.9rem;
+        }
+
+        .verify-guide h6 {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .verify-guide ul {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .verify-guide li {
+            margin-bottom: 6px;
+        }
+
+        .verify-tip {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
     </style>
 </head>
 <body>
@@ -34,7 +96,7 @@
         <div class="verify-container">
             
             <div class="text-center mb-4">
-                <h2 class="text-white fw-bold"><i class="bi bi-shield-check"></i> DocFlow</h2>
+                <h2 class="text-white fw-bold"><i class="bi bi-shield-check"></i> UniDoc</h2>
                 <p class="text-white-50">Hujjat kodini kiriting</p>
             </div>
             
@@ -61,13 +123,6 @@
                         </div>
                     </div>
 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small">QR kod rasmini yuklang</label>
-                        <input type="file" name="qr_image" id="qrInput" class="form-control" accept="image/*">
-                        <div class="text-muted small mt-2">
-                            QR kodni rasm sifatida tanlang, avtomatik tekshiriladi.
-                        </div>
-                    </div>
                 </form>
 
                 <div id="statusText" class="text-center text-primary fw-bold" style="display: none;">
@@ -76,6 +131,27 @@
                 </div>
 
                 <div id="qrError" class="text-center text-danger small mt-3" style="display: none;"></div>
+                <div id="verifyResult" class="verify-result">
+                    <div id="verifyTitle" class="fw-semibold"></div>
+                    <div id="verifyExists" class="small mt-1"></div>
+                    <div class="verify-meta">
+                        <span id="verifyStatus" class="verify-chip"></span>
+                        <span id="verifyType" class="verify-chip"></span>
+                    </div>
+                    <a id="verifyDownload" class="btn btn-sm btn-primary mt-3 d-none" target="_blank" rel="noopener">
+                        <i class="bi bi-download"></i> Yuklab olish
+                    </a>
+                </div>
+            </div>
+
+            <div class="verify-guide mt-3">
+                <h6><i class="bi bi-info-circle"></i> Tekshirish qo‘llanmasi</h6>
+                <ul>
+                    <li>Hujjatdagi 4 xonali kodni kiriting.</li>
+                    <li>Kod to‘g‘ri bo‘lsa, hujjat mavjudligi chiqadi.</li>
+                    <li>Yuklab olish tugmasi chiqsa, tasdiqlang va faylni oling.</li>
+                </ul>
+                <div class="verify-tip mt-2">Maslahat: kodni hujjatning oxirgi sahifasidan topasiz.</div>
             </div>
 
             <div class="text-center mt-4">
@@ -86,16 +162,27 @@
         </div>
     </div>
     
-    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) {
+                return parts.pop().split(';').shift();
+            }
+            return '';
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('codeInput');
             const form = document.getElementById('verifyForm');
             const statusText = document.getElementById('statusText');
-            const qrInput = document.getElementById('qrInput');
             const qrError = document.getElementById('qrError');
-            const qrCanvas = document.createElement('canvas');
-
+            const verifyResult = document.getElementById('verifyResult');
+            const verifyTitle = document.getElementById('verifyTitle');
+            const verifyExists = document.getElementById('verifyExists');
+            const verifyStatus = document.getElementById('verifyStatus');
+            const verifyType = document.getElementById('verifyType');
+            const verifyDownload = document.getElementById('verifyDownload');
             if (input) {
                 input.focus(); // Avtomatik fokus
 
@@ -106,23 +193,42 @@
 
                     // 4 ta belgi bo'lganda
                     if (value.length === 4) {
-                        input.blur(); // Klaviatura yopilsin
-                        input.readOnly = true; // O'zgartirib bo'lmasin
-                        statusText.style.display = 'block'; // "Qidirilmoqda..." chiqadi
-                        
-                        // Formani yuborish
-                        form.submit();
-
-                        // 3 soniyadan keyin inputni yana ochamiz 
-                        // (Chunki fayl yuklansa, sahifa yangilanmaydi, shunda user xatolik bo'lsa qayta yozishi uchun)
-                        setTimeout(() => {
-                            input.readOnly = false;
-                            input.value = ''; // Tozalab qo'yamiz
-                            input.focus();
-                            statusText.style.display = 'none';
-                        }, 2000);
+                        checkByCode(value);
                     }
                 });
+            }
+
+            function showResultSuccess(payload) {
+                if (!verifyResult) return;
+                verifyResult.classList.remove('error');
+                verifyResult.classList.add('success');
+                verifyResult.style.display = 'block';
+                verifyTitle.textContent = payload.title || 'Hujjat mavjud';
+                verifyExists.textContent = 'Hujjat mavjud.';
+                verifyStatus.textContent = payload.status || 'Tasdiqlangan';
+                verifyType.textContent = payload.type || 'Hujjat';
+                if (payload.file_url) {
+                    verifyDownload.href = payload.file_url;
+                    verifyDownload.classList.remove('d-none');
+                } else {
+                    verifyDownload.classList.add('d-none');
+                }
+            }
+
+            function showResultError(message) {
+                if (!verifyResult) return;
+                verifyResult.classList.remove('success');
+                verifyResult.classList.add('error');
+                verifyResult.style.display = 'block';
+                verifyTitle.textContent = message || 'Hujjat topilmadi';
+                verifyExists.textContent = '';
+                verifyStatus.textContent = '';
+                verifyType.textContent = '';
+                verifyDownload.classList.add('d-none');
+            }
+
+            function setLoading(isLoading) {
+                statusText.style.display = isLoading ? 'block' : 'none';
             }
 
             function showQrError(message) {
@@ -137,54 +243,27 @@
                 qrError.style.display = 'none';
             }
 
-            function handleQrData(data) {
-                const uuidMatch = data.match(/\/verify\/([a-f0-9-]{36})/i);
-                if (uuidMatch) {
-                    window.location.href = `/verify/${uuidMatch[1]}/`;
-                    return;
-                }
-                const codeMatch = data.trim().toUpperCase().match(/^[A-Z0-9]{4}$/);
-                if (codeMatch) {
-                    input.value = codeMatch[0];
-                    input.dispatchEvent(new Event('input'));
-                    return;
-                }
-                showQrError('QR kod formati noto‘g‘ri yoki tanilmadi.');
+            function checkByCode(code) {
+                clearQrError();
+                setLoading(true);
+                fetch(`/verify/?check=1&code=${encodeURIComponent(code)}`)
+                    .then(res => res.json().then(data => ({ ok: res.ok, data })))
+                    .then(({ ok, data }) => {
+                        if (ok && data.exists) {
+                            showResultSuccess(data);
+                        } else {
+                            showResultError(data.error || 'Hujjat topilmadi.');
+                        }
+                    })
+                    .catch(() => showResultError('Serverga ulanib bo‘lmadi.'))
+                    .finally(() => setLoading(false));
             }
-
-            if (qrInput) {
-                qrInput.addEventListener('change', (event) => {
-                    clearQrError();
-                    const file = event.target.files && event.target.files[0];
-                    if (!file) {
-                        return;
+            if (verifyDownload) {
+                verifyDownload.addEventListener('click', (event) => {
+                    const ok = window.confirm('Hujjatni yuklab olishni xohlaysizmi?');
+                    if (!ok) {
+                        event.preventDefault();
                     }
-                    if (!file.type.startsWith('image/')) {
-                        showQrError('Faqat rasm faylini tanlang.');
-                        return;
-                    }
-
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const img = new Image();
-                        img.onload = () => {
-                            qrCanvas.width = img.width;
-                            qrCanvas.height = img.height;
-                            const ctx = qrCanvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0);
-                            const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-                            const code = window.jsQR(imageData.data, qrCanvas.width, qrCanvas.height);
-                            if (code && code.data) {
-                                handleQrData(code.data);
-                            } else {
-                                showQrError('QR kod topilmadi. Aniqroq rasm yuklang.');
-                            }
-                        };
-                        img.onerror = () => showQrError('Rasmni o‘qib bo‘lmadi.');
-                        img.src = reader.result;
-                    };
-                    reader.onerror = () => showQrError('Faylni o‘qib bo‘lmadi.');
-                    reader.readAsDataURL(file);
                 });
             }
         });

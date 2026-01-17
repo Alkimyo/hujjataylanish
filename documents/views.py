@@ -14,6 +14,8 @@ from .services import ApprovalWorkflowService, NotificationService, DocumentFilt
 from .qr_service import QRCodeService
 from .forms import DocumentUploadForm, ProfileUpdateForm, PasswordChangeUzForm, SubjectImportForm, AllocationImportForm
 import os
+import re
+from PyPDF2 import PdfReader
 from .qr_service import QRCodeService
 import json 
 from django.core.serializers.json import DjangoJSONEncoder
@@ -477,18 +479,24 @@ def download_document(request, document_id):
         raise PermissionDenied("Ruxsat yo'q")
     
     if document.status == 'approved' and document.final_pdf:
-        file_path = document.final_pdf.path
+        target_file = document.final_pdf
         filename = f"approved_{document.file_name}"
     else:
-        file_path = document.file.path
+        target_file = document.file
         filename = document.file_name
     
     try:
-        response = FileResponse(open(file_path, 'rb'))
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
+        if hasattr(target_file, 'path'):
+            response = FileResponse(open(target_file.path, 'rb'))
+            response['Content-Disposition'] = f'attachment; filename="{filename}"'
+            return response
     except FileNotFoundError:
-        raise Http404("Fayl topilmadi")
+        pass
+
+    if target_file and getattr(target_file, 'url', None):
+        return redirect(target_file.url)
+
+    raise Http404("Fayl topilmadi")
 
 import os
 from django.shortcuts import get_object_or_404, redirect
@@ -674,6 +682,21 @@ def mark_all_notifications_read(request):
 # Public Verify Views
 def verify_document(request):
     # Logic for public verification form
+    if request.method == 'GET' and request.GET.get('check') == '1':
+        code = request.GET.get('code', '').strip().upper()
+        if not code:
+            return JsonResponse({'exists': False, 'error': 'Kod kiritilmadi.'}, status=400)
+        document = Document.objects.filter(verification_code=code, status='approved').first()
+        if not document:
+            return JsonResponse({'exists': False, 'error': 'Hujjat topilmadi.'}, status=404)
+        target_file = document.final_pdf if document.final_pdf else document.file
+        file_url = getattr(target_file, 'url', None)
+        return JsonResponse({
+            'exists': True,
+            'title': document.title or document.file_name,
+            'status': document.get_status_display(),
+            'file_url': file_url,
+        })
     return render(request, 'documents/verify.html')
 
 from django.http import FileResponse
@@ -690,14 +713,27 @@ def verify_by_uuid(request, uuid):
 
     def _serve_verified_document(document):
         target_file = document.final_pdf if document.final_pdf else document.file
-        if os.path.exists(target_file.path):
+        if hasattr(target_file, 'path') and os.path.exists(target_file.path):
             response = FileResponse(open(target_file.path, 'rb'), content_type='application/pdf')
             filename = f"hujjat_{document.verification_code}.pdf"
             response['Content-Disposition'] = f'attachment; filename="{filename}"'
             return response
+        if target_file and getattr(target_file, 'url', None):
+            return redirect(target_file.url)
         raise FileNotFoundError("Hujjat bazada bor, lekin fayl serverda topilmadi.")
 
     document = Document.objects.filter(uuid=uuid, status='approved').first()
+    if request.method == 'GET' and request.GET.get('check') == '1':
+        if not document:
+            return JsonResponse({'exists': False, 'error': 'Hujjat topilmadi.'}, status=404)
+        target_file = document.final_pdf if document.final_pdf else document.file
+        file_url = getattr(target_file, 'url', None)
+        return JsonResponse({
+            'exists': True,
+            'title': document.title or document.file_name,
+            'status': document.get_status_display(),
+            'file_url': file_url,
+        })
     if document and request.method == 'GET':
         try:
             return _serve_verified_document(document)
