@@ -135,7 +135,6 @@ class QRCodeService:
         c.drawString(text_x, text_y - 15, f"Tasdiqlangan sana: {date_str}")
         
         c.drawString(text_x, text_y - 30, f"Hujjat turi: {document.document_type.name}")
-        c.drawString(text_x, text_y - 45, f"UUID: {document.uuid}")
         #c.drawString(text_x, text_y - 45, f"Yuklovchi: {document.uploaded_by.get_full_name()}")
 
         # Qonuniy matn
@@ -144,7 +143,7 @@ class QRCodeService:
         
         legal_text = (
             "Mazkur hujjat O'zbekiston Respublikasi Vazirlar Mahkamasining 2017-yil 15-sentabrdagi 728-son "
-            "qaroriga muvofiq DocFlow tizimida shakllantirilgan elektron hujjatning nusxasi hisoblanadi. "
+            "qaroriga muvofiq UniDoc tizimida shakllantirilgan elektron hujjatning nusxasi hisoblanadi. "
             "Davlat organlari tomonidan ushbu hujjatni qabul qilishni rad etish qat'iyan taqiqlanadi."
         )
         
