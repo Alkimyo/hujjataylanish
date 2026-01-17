@@ -332,6 +332,12 @@
         }
 
         @media (max-width: 992px) {
+            .sidebar-shell {
+                width: 0;
+                flex: 0 0 0;
+                max-width: 0;
+            }
+
             .navbar-custom {
                 padding: 0.4rem 0.75rem;
             }
@@ -390,18 +396,18 @@
                 transform: translateX(0);
             }
 
-        .sidebar-open .sidebar-backdrop {
-            opacity: 1;
-            visibility: visible;
-        }
+            .sidebar-open .sidebar-backdrop {
+                opacity: 1;
+                visibility: visible;
+            }
 
-        .sidebar-open {
-            overflow: hidden;
-        }
+            .sidebar-open {
+                overflow: hidden;
+            }
 
-        .content-wrapper {
-            padding: 20px;
-        }
+            .content-wrapper {
+                padding: 20px;
+            }
 
             .sidebar .nav-link,
             .sidebar button.nav-link {
@@ -430,17 +436,18 @@
 
         {% if user.is_authenticated %}
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
-        <div class="col-md-2 p-0 sidebar position-relative">
-            <div class="text-center py-4 sidebar-header">
-                <h4 class="text-white fw-bold mb-0">
-                    <i class="bi bi-file-earmark-text"></i> UniDoc
-                </h4>
-                <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Sidebar yopish">
-                    <i class="bi bi-x-lg"></i>
-                </button>
-            </div>
+        <div class="col-md-2 p-0 sidebar-shell">
+            <div class="sidebar position-relative">
+                <div class="text-center py-4 sidebar-header">
+                    <h4 class="text-white fw-bold mb-0">
+                        <i class="bi bi-file-earmark-text"></i> UniDoc
+                    </h4>
+                    <button type="button" class="sidebar-close" id="sidebarClose" aria-label="Sidebar yopish">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
 
-            <nav class="nav flex-column sidebar-nav">
+                <nav class="nav flex-column sidebar-nav">
                 <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
                    href="{% url 'dashboard' %}">
                     <i class="bi bi-speedometer2"></i> Bosh sahifa
@@ -479,60 +486,61 @@
                 </a>
             </nav>
 
-            <!-- Sidebar footer with user info -->
-            <div class="sidebar-footer text-center">
-                <div class="mb-2">
-                    <i class="bi bi-person-circle fs-4 text-white"></i>
-                </div>
-                <div class="text-white fw-bold mb-1">{{ user.get_full_name|truncatechars:20 }}</div>
-                <div class="text-white-50 small mb-2">
-                    <i class="bi bi-briefcase"></i> 
-                    <span id="current-role-display">
-                        {{ user.get_active_role_display|default:"Foydalanuvchi" }}
-                    </span>
-                </div>
-                
-                <!-- Role switcher in sidebar (if user has multiple roles) -->
-                {% if user.get_role_objects|length > 1 %}
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-outline-light w-100 dropdown-toggle" 
-                            type="button" 
-                            data-bs-toggle="dropdown"
-                            aria-expanded="false"
-                            style="font-size: 0.8rem;">
-                        <i class="bi bi-arrow-left-right"></i> Rolni almashtirish
-                    </button>
-                    <ul class="dropdown-menu role-dropdown">
-                        {% for role in user.get_role_objects %}
-                        <li>
-                            <button type="button" class="dropdown-item role-item {% if user.active_role and role.code == user.active_role.code %}active{% endif %}"
-                               data-role-code="{{ role.code }}"
-                               data-role-name="{{ role.name|escapejs }}"
-                               onclick="switchRole(this.dataset.roleCode, this.dataset.roleName)">
-                                <div class="d-flex align-items-center">
-                                    <div class="role-icon">
-                                        {% if "talaba" in role.name|lower %}
-                                        <i class="bi bi-mortarboard"></i>
-                                        {% elif "o'qituvchi" in role.name|lower %}
-                                        <i class="bi bi-person-video"></i>
-                                        {% elif "mudir" in role.name|lower %}
-                                        <i class="bi bi-person-badge"></i>
-                                        {% elif "dekan" in role.name|lower %}
-                                        <i class="bi bi-person-workspace"></i>
-                                        {% elif "direktor" in role.name|lower %}
-                                        <i class="bi bi-person-gear"></i>
-                                        {% else %}
-                                        <i class="bi bi-person"></i>
-                                        {% endif %}
+                <!-- Sidebar footer with user info -->
+                <div class="sidebar-footer text-center">
+                    <div class="mb-2">
+                        <i class="bi bi-person-circle fs-4 text-white"></i>
+                    </div>
+                    <div class="text-white fw-bold mb-1">{{ user.get_full_name|truncatechars:20 }}</div>
+                    <div class="text-white-50 small mb-2">
+                        <i class="bi bi-briefcase"></i> 
+                        <span id="current-role-display">
+                            {{ user.get_active_role_display|default:"Foydalanuvchi" }}
+                        </span>
+                    </div>
+                    
+                    <!-- Role switcher in sidebar (if user has multiple roles) -->
+                    {% if user.get_role_objects|length > 1 %}
+                    <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-light w-100 dropdown-toggle" 
+                                type="button" 
+                                data-bs-toggle="dropdown"
+                                aria-expanded="false"
+                                style="font-size: 0.8rem;">
+                            <i class="bi bi-arrow-left-right"></i> Rolni almashtirish
+                        </button>
+                        <ul class="dropdown-menu role-dropdown">
+                            {% for role in user.get_role_objects %}
+                            <li>
+                                <button type="button" class="dropdown-item role-item {% if user.active_role and role.code == user.active_role.code %}active{% endif %}"
+                                   data-role-code="{{ role.code }}"
+                                   data-role-name="{{ role.name|escapejs }}"
+                                   onclick="switchRole(this.dataset.roleCode, this.dataset.roleName)">
+                                    <div class="d-flex align-items-center">
+                                        <div class="role-icon">
+                                            {% if "talaba" in role.name|lower %}
+                                            <i class="bi bi-mortarboard"></i>
+                                            {% elif "o'qituvchi" in role.name|lower %}
+                                            <i class="bi bi-person-video"></i>
+                                            {% elif "mudir" in role.name|lower %}
+                                            <i class="bi bi-person-badge"></i>
+                                            {% elif "dekan" in role.name|lower %}
+                                            <i class="bi bi-person-workspace"></i>
+                                            {% elif "direktor" in role.name|lower %}
+                                            <i class="bi bi-person-gear"></i>
+                                            {% else %}
+                                            <i class="bi bi-person"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div>{{ role.name }}</div>
                                     </div>
-                                    <div>{{ role.name }}</div>
-                                </div>
-                            </button>
-                        </li>
-                        {% endfor %}
-                    </ul>
+                                </button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
         {% endif %}
