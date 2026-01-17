@@ -19,7 +19,11 @@ class ApprovalWorkflowService:
             current_step = document.get_current_approver()
             if not current_step:
                 raise ValidationError("Tasdiqlash bosqichi topilmadi")
-            
+
+            active_role_type = user.active_role.role_type if user.active_role else None
+            if active_role_type and current_step.role_required != active_role_type:
+                raise PermissionDenied("Faol rolingiz ushbu tasdiqlash bosqichiga mos emas")
+
             if current_step.approver != user:
                 raise PermissionDenied("Siz bu hujjatni tasdiqlash huquqiga ega emassiz")
             
@@ -115,7 +119,11 @@ class ApprovalWorkflowService:
             current_step = document.get_current_approver()
             if not current_step:
                 raise ValidationError("Tasdiqlash bosqichi topilmadi")
-            
+
+            active_role_type = user.active_role.role_type if user.active_role else None
+            if active_role_type and current_step.role_required != active_role_type:
+                raise PermissionDenied("Faol rolingiz ushbu tasdiqlash bosqichiga mos emas")
+
             if current_step.approver != user:
                 raise PermissionDenied("Sizda rad etish huquqi yo'q")
             
@@ -171,13 +179,17 @@ class ApprovalWorkflowService:
         Foydalanuvchi uchun kutilayotgan tasdiqlarni qaytaradi.
         MUHIM: Faqat hujjatning HOZIRGI bosqichi foydalanuvchiga tegishli bo'lsa ko'rsatiladi.
         """
-        return models.ApprovalStep.objects.filter(
+        queryset = models.ApprovalStep.objects.filter(
             approver=user,
             status='pending',
             document__status='pending_approval',
             # MUHIM TUZATISH: Step order hujjatning current_stepiga teng bo'lishi shart
             step_order=F('document__current_step')
-        ).select_related(
+        )
+        active_role_type = user.active_role.role_type if user.active_role else None
+        if active_role_type:
+            queryset = queryset.filter(role_required=active_role_type)
+        return queryset.select_related(
             'document', 
             'document__uploaded_by', 
             'document__document_type'

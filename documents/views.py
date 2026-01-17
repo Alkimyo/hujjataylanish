@@ -5,7 +5,7 @@ from django.views.decorators.http import require_http_methods
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
-from django.db.models import Q
+from django.db.models import Q, F
 from django.db import transaction
 from django.utils import timezone
 
@@ -28,6 +28,21 @@ from openpyxl import load_workbook
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
+
+
+def _notifications_queryset(user):
+    queryset = Notification.objects.filter(recipient=user)
+    active_role_type = user.active_role.role_type if user.active_role else None
+    if not active_role_type:
+        return queryset
+    return queryset.filter(
+        Q(document__isnull=True) |
+        Q(document__uploaded_by=user) |
+        Q(
+            document__approval_steps__step_order=F('document__current_step'),
+            document__approval_steps__role_required=active_role_type,
+        )
+    ).distinct()
 
 @require_POST
 @login_required
@@ -107,7 +122,7 @@ def dashboard(request):
     user = request.user
     pending_approvals = ApprovalWorkflowService.get_pending_approvals_for_user(user)
     my_documents = Hujjat.objects.filter(uploaded_by=user).order_by('-uploaded_at')[:10]
-    notifications = Notification.objects.filter(recipient=user).order_by('-created_at')[:10]
+    notifications = _notifications_queryset(user).order_by('-created_at')[:10]
     
     stats = {
         'pending_approvals': pending_approvals.count(),
@@ -115,7 +130,7 @@ def dashboard(request):
         'my_approved': Hujjat.objects.filter(uploaded_by=user, status='approved').count(),
         'my_pending': Hujjat.objects.filter(uploaded_by=user, status='pending_approval').count(),
         'my_rejected': Hujjat.objects.filter(uploaded_by=user, status='rejected').count(),
-        'unread_notifications': NotificationService.get_unread_count(user),
+        'unread_notifications': _notifications_queryset(user).filter(is_read=False).count(),
     }
     
     context = {
@@ -312,7 +327,8 @@ def document_detail(request, document_id):
     current_step = document.get_current_approver()
     can_approve = False
     if current_step and current_step.status == 'pending':
-        if current_step.approver == request.user:
+        active_role_type = request.user.active_role.role_type if request.user.active_role else None
+        if current_step.approver == request.user and (not active_role_type or current_step.role_required == active_role_type):
             can_approve = True
 
     # --- MA'LUMOTLARNI ALOHIDA O'ZGARUVCHILARGA OLISH ---
@@ -633,11 +649,11 @@ def subject_distribution(request):
 @login_required
 def notifications_list(request):
     """View all notifications with document workflow details"""
-    
-    # 1. Bildirishnomalarni olamiz
-    notifications = Notification.objects.filter(
-        recipient=request.user
-    ).select_related('document', 'document__document_type').order_by('-created_at')
+
+    # 1. Bildirishnomalarni olamiz (faol rol bo'yicha)
+    notifications = _notifications_queryset(request.user).select_related(
+        'document', 'document__document_type'
+    ).order_by('-created_at')
     
     # 2. Har bir bildirishnoma uchun hujjat jarayonini tayyorlaymiz
     notifications_with_workflow = []
@@ -765,7 +781,7 @@ def api_document_status(request, document_id):
 
 @login_required
 def api_notification_count(request):
-    count = NotificationService.get_unread_count(request.user)
+    count = _notifications_queryset(request.user).filter(is_read=False).count()
     return JsonResponse({'unread_count': count})
 
 

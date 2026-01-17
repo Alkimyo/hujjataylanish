@@ -10,14 +10,14 @@ class NotificationService:
     @classmethod
     def notify_approval_needed(cls, document, approver):
         
-        title = f"Document Approval Needed: {document.file_name}"
+        title = f"Tasdiqlash kerak: {document.file_name}"
         message = (
-            f"You have a new document waiting for your approval.\n\n"
-            f"Document: {document.file_name}\n"
-            f"Type: {document.document_type.name}\n"
-            f"Uploaded by: {document.uploaded_by.get_full_name()}\n"
-            f"Department: {document.uploaded_by.department.name if document.uploaded_by.department else 'N/A'}\n\n"
-            f"Please review and approve or reject this document at your earliest convenience."
+            f"Sizda yangi hujjat tasdiqlash uchun kutmoqda.\n\n"
+            f"Hujjat: {document.file_name}\n"
+            f"Turi: {document.document_type.name}\n"
+            f"Yuklovchi: {document.uploaded_by.get_full_name()}\n"
+            f"Kafedra: {document.uploaded_by.department.name if document.uploaded_by.department else 'N/A'}\n\n"
+            f"Iltimos, hujjatni ko'rib chiqing va tasdiqlang yoki rad eting."
         )
         
         notification = Notification.objects.create(
@@ -51,13 +51,13 @@ class NotificationService:
        
         uploader = document.uploaded_by
         
-        title = f"Document Approved: {document.file_name}"
+        title = f"Hujjat tasdiqlandi: {document.file_name}"
         message = (
-            f"Great news! Your document has been fully approved.\n\n"
-            f"Document: {document.file_name}\n"
-            f"Type: {document.document_type.name}\n"
-            f"Approved on: {document.completed_at.strftime('%Y-%m-%d %H:%M')}\n\n"
-            f"You can now download the official version with QR code verification."
+            f"Xushxabar! Hujjatingiz to'liq tasdiqlandi.\n\n"
+            f"Hujjat: {document.file_name}\n"
+            f"Turi: {document.document_type.name}\n"
+            f"Tasdiqlangan sana: {document.completed_at.strftime('%Y-%m-%d %H:%M')}\n\n"
+            f"Endi QR kodli rasmiy nusxani yuklab olishingiz mumkin."
         )
         
         notification = Notification.objects.create(
@@ -89,15 +89,15 @@ class NotificationService:
        
         uploader = document.uploaded_by
         
-        title = f"Document Rejected: {document.file_name}"
+        title = f"Hujjat rad etildi: {document.file_name}"
         message = (
-            f"Your document has been rejected and requires revision.\n\n"
-            f"Document: {document.file_name}\n"
-            f"Type: {document.document_type.name}\n"
-            f"Rejected by: {rejected_by.get_full_name()} ({rejected_by.get_role_display()})\n"
-            f"Rejection Date: {document.completed_at.strftime('%Y-%m-%d %H:%M')}\n\n"
-            f"Reason:\n{reason}\n\n"
-            f"Please review the feedback and resubmit your document."
+            f"Hujjatingiz rad etildi va qayta ko'rib chiqish talab qilinadi.\n\n"
+            f"Hujjat: {document.file_name}\n"
+            f"Turi: {document.document_type.name}\n"
+            f"Rad etgan: {rejected_by.get_full_name()} ({rejected_by.get_role_display()})\n"
+            f"Rad etilgan sana: {document.completed_at.strftime('%Y-%m-%d %H:%M')}\n\n"
+            f"Sabab:\n{reason}\n\n"
+            f"Iltimos, izohlarni inobatga olib qayta yuboring."
         )
         
         notification = Notification.objects.create(
@@ -127,13 +127,13 @@ class NotificationService:
     @classmethod
     def notify_auto_approved(cls, document, missed_approver):
       
-        title = f"Document Auto-Approved: {document.file_name}"
+        title = f"Hujjat avtomatik tasdiqlandi: {document.file_name}"
         message = (
-            f"A document assigned to you was automatically approved due to deadline expiration.\n\n"
-            f"Document: {document.file_name}\n"
-            f"Type: {document.document_type.name}\n"
-            f"Uploaded by: {document.uploaded_by.get_full_name()}\n\n"
-            f"Please note that future timely responses are expected to maintain workflow efficiency."
+            f"Belgilangan hujjat muddati o'tgani uchun avtomatik tasdiqlandi.\n\n"
+            f"Hujjat: {document.file_name}\n"
+            f"Turi: {document.document_type.name}\n"
+            f"Yuklovchi: {document.uploaded_by.get_full_name()}\n\n"
+            f"Iltimos, kelgusida belgilangan muddatlarda javob berishga e'tibor bering."
         )
         
         notification = Notification.objects.create(
