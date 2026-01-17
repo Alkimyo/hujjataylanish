@@ -60,12 +60,22 @@
                             4 xonali kodni kiriting
                         </div>
                     </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">QR kod rasmini yuklang</label>
+                        <input type="file" name="qr_image" id="qrInput" class="form-control" accept="image/*">
+                        <div class="text-muted small mt-2">
+                            QR kodni rasm sifatida tanlang, avtomatik tekshiriladi.
+                        </div>
+                    </div>
                 </form>
 
                 <div id="statusText" class="text-center text-primary fw-bold" style="display: none;">
                     <div class="spinner-border spinner-border-sm me-2"></div>
                     Qidirilmoqda...
                 </div>
+
+                <div id="qrError" class="text-center text-danger small mt-3" style="display: none;"></div>
             </div>
 
             <div class="text-center mt-4">
@@ -76,11 +86,15 @@
         </div>
     </div>
     
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const input = document.getElementById('codeInput');
             const form = document.getElementById('verifyForm');
             const statusText = document.getElementById('statusText');
+            const qrInput = document.getElementById('qrInput');
+            const qrError = document.getElementById('qrError');
+            const qrCanvas = document.createElement('canvas');
 
             if (input) {
                 input.focus(); // Avtomatik fokus
@@ -108,6 +122,69 @@
                             statusText.style.display = 'none';
                         }, 2000);
                     }
+                });
+            }
+
+            function showQrError(message) {
+                if (!qrError) return;
+                qrError.textContent = message;
+                qrError.style.display = 'block';
+            }
+
+            function clearQrError() {
+                if (!qrError) return;
+                qrError.textContent = '';
+                qrError.style.display = 'none';
+            }
+
+            function handleQrData(data) {
+                const uuidMatch = data.match(/\/verify\/([a-f0-9-]{36})/i);
+                if (uuidMatch) {
+                    window.location.href = `/verify/${uuidMatch[1]}/`;
+                    return;
+                }
+                const codeMatch = data.trim().toUpperCase().match(/^[A-Z0-9]{4}$/);
+                if (codeMatch) {
+                    input.value = codeMatch[0];
+                    input.dispatchEvent(new Event('input'));
+                    return;
+                }
+                showQrError('QR kod formati noto‘g‘ri yoki tanilmadi.');
+            }
+
+            if (qrInput) {
+                qrInput.addEventListener('change', (event) => {
+                    clearQrError();
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) {
+                        return;
+                    }
+                    if (!file.type.startsWith('image/')) {
+                        showQrError('Faqat rasm faylini tanlang.');
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const img = new Image();
+                        img.onload = () => {
+                            qrCanvas.width = img.width;
+                            qrCanvas.height = img.height;
+                            const ctx = qrCanvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+                            const code = window.jsQR(imageData.data, qrCanvas.width, qrCanvas.height);
+                            if (code && code.data) {
+                                handleQrData(code.data);
+                            } else {
+                                showQrError('QR kod topilmadi. Aniqroq rasm yuklang.');
+                            }
+                        };
+                        img.onerror = () => showQrError('Rasmni o‘qib bo‘lmadi.');
+                        img.src = reader.result;
+                    };
+                    reader.onerror = () => showQrError('Faylni o‘qib bo‘lmadi.');
+                    reader.readAsDataURL(file);
                 });
             }
         });
