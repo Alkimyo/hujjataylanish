@@ -38,7 +38,7 @@ def _normalize_csrf_origin(origin):
 DEBUG = _env_bool(os.getenv("DEBUG"), default=True)
 
 allowed_hosts_raw = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(",") if host.strip(),'0.0.0.0']
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(",") if host.strip()]
 
 csrf_origins_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if csrf_origins_raw:
