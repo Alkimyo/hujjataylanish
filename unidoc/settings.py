@@ -38,7 +38,7 @@ def _normalize_csrf_origin(origin):
 DEBUG = _env_bool(os.getenv("DEBUG"), default=True)
 
 allowed_hosts_raw = os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1")
-ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(",") if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in allowed_hosts_raw.split(",") if host.strip(),'0.0.0.0']
 
 csrf_origins_raw = os.getenv("CSRF_TRUSTED_ORIGINS", "")
 if csrf_origins_raw:
@@ -174,6 +174,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SITE_URL = os.getenv('SITE_URL', 'http://localhost:8000')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@unidocs.uz')
+
+SESSION_COOKIE_AGE = int(os.getenv('SESSION_COOKIE_AGE', '900'))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = _env_bool(os.getenv('EMAIL_USE_TLS'), default=True)
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '')
 
 render_external_url = os.getenv('RENDER_EXTERNAL_URL', '')
 if render_external_url:
