@@ -78,7 +78,17 @@
                             {% elif document.status == 'pending_approval' %} bg-warning-subtle text-warning
                             {% else %} bg-secondary-subtle text-secondary
                             {% endif %}">
-                            {{ document.get_status_display|default:document.status }}
+                            {% if document.status == 'approved' %}
+                                Tasdiqlangan
+                            {% elif document.status == 'rejected' %}
+                                Rad etilgan
+                            {% elif document.status == 'pending_approval' %}
+                                Jarayonda
+                            {% elif document.status == 'uploaded' %}
+                                Yuklangan
+                            {% else %}
+                                Qoralama
+                            {% endif %}
                         </span>
                     </div>
 
