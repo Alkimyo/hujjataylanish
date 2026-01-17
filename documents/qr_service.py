@@ -187,22 +187,22 @@ class QRCodeService:
     
     @classmethod
     def verify_document(cls, verification_input, qr_data=None):
-        from .models import Document
+        from .models import Hujjat
         document = None
         
         if verification_input:
             verification_input = verification_input.strip().upper()
             try:
-                document = Document.objects.get(verification_code=verification_input, status='approved')
-            except Document.DoesNotExist:
+                document = Hujjat.objects.get(verification_code=verification_input, status='approved')
+            except Hujjat.DoesNotExist:
                 pass
         
         if not document and qr_data:
             uuid_str = cls._extract_uuid_from_url(qr_data)
             if uuid_str:
                 try:
-                    document = Document.objects.get(uuid=uuid_str, status='approved')
-                except Document.DoesNotExist:
+                    document = Hujjat.objects.get(uuid=uuid_str, status='approved')
+                except Hujjat.DoesNotExist:
                     pass
         
         if document:

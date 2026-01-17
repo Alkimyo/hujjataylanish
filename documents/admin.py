@@ -8,7 +8,7 @@ from django.urls import reverse
 from .models import (
     User, Role, University, Faculty, Department, Program, Group,
     Subject, TeachingAllocation, AcademicYear, AuditLog, JobRun,
-    DocumentType, Document, ApprovalStep, ApprovalLog, Notification, RequestLog, SecurityPolicy
+    DocumentType, Hujjat, ApprovalStep, ApprovalLog, Notification, RequestLog, SecurityPolicy
 )
 from import_export import resources, fields
 from import_export.admin import ImportMixin
@@ -638,7 +638,7 @@ class ApprovalLogInline(admin.TabularInline):
 
 # ==================== DOCUMENT ADMINS ====================
 
-@admin.register(Document)
+@admin.register(Hujjat)
 class DocumentAdmin(admin.ModelAdmin):
     list_display = [
         'file_name', 
@@ -677,7 +677,7 @@ class DocumentAdmin(admin.ModelAdmin):
     ]
     
     fieldsets = (
-        ('Document Information', {
+        ('Hujjat Information', {
             'fields': ('document_type', 'uploaded_by', 'file', 'file_name', 'file_size', 'title', 'description')
         }),
         ('Status', {

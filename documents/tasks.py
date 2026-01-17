@@ -8,7 +8,7 @@ from datetime import timedelta
 from django.utils import timezone
 from .services import ApprovalWorkflowService
 from django.db.models import Q
-from .models import Document, ApprovalStep, JobRun
+from .models import Hujjat, ApprovalStep, JobRun
 
 
 def _mark_job_start(task_name):
@@ -113,7 +113,7 @@ def generate_qr_codes_batch():
         from .qr_service import QRCodeService
 
         # Find approved documents without QR codes
-        documents_without_qr = Document.objects.filter(status='approved').filter(
+        documents_without_qr = Hujjat.objects.filter(status='approved').filter(
             Q(qr_code_image__isnull=True) | Q(qr_code_image='')
         )
 
@@ -150,7 +150,7 @@ def generate_final_pdfs_batch():
         from .qr_service import QRCodeService
 
         # Find approved documents without final PDFs
-        documents_without_pdf = Document.objects.filter(status='approved').filter(
+        documents_without_pdf = Hujjat.objects.filter(status='approved').filter(
             Q(final_pdf__isnull=True) | Q(final_pdf='')
         )
 
@@ -254,7 +254,7 @@ Please log in to the system to review and approve these documents:
 {settings.SITE_URL}/approvals/pending/
 
 Best regards,
-Document Workflow System
+Hujjat Workflow System
                 """.strip()
 
                 try:

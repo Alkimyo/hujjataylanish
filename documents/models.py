@@ -1007,7 +1007,7 @@ class DocumentType(models.Model):
         return ", ".join([role_dict.get(role, role) for role in self.allowed_roles])
 
 
-class Document(models.Model):
+class Hujjat(models.Model):
     STATUS_CHOICES = [
         ('uploaded', 'Uploaded'),
         ('pending_approval', 'Pending Approval'),
@@ -1078,7 +1078,7 @@ class Document(models.Model):
     def _generate_verification_code(self):
         while True:
             code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
-            if not Document.objects.filter(verification_code=code).exists():
+            if not Hujjat.objects.filter(verification_code=code).exists():
                 return code
     
     def _create_approval_steps(self):
@@ -1111,7 +1111,7 @@ class Document(models.Model):
         steps = self.approval_steps.all().order_by('step_order')
         for step in steps:
             if step.status == 'pending':
-                Document.objects.filter(pk=self.pk).update(current_step=step.step_order)
+                Hujjat.objects.filter(pk=self.pk).update(current_step=step.step_order)
                 return True
         return False
     
@@ -1216,7 +1216,7 @@ class ApprovalStep(models.Model):
         ('skipped', 'Skipped'),
     ]
     
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='approval_steps')
+    document = models.ForeignKey(Hujjat, on_delete=models.CASCADE, related_name='approval_steps')
     step_order = models.IntegerField()
     approver = models.ForeignKey(User, on_delete=models.PROTECT, related_name='approval_tasks', null=True)
     role_required = models.CharField(max_length=30)
@@ -1247,7 +1247,7 @@ class ApprovalLog(models.Model):
         ('auto_approved', 'Auto-Approved'),
     ]
     
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, related_name='approval_logs')
+    document = models.ForeignKey(Hujjat, on_delete=models.CASCADE, related_name='approval_logs')
     approval_step = models.ForeignKey(ApprovalStep, on_delete=models.CASCADE, related_name='logs')
     approver = models.ForeignKey(User, on_delete=models.PROTECT, related_name='approval_actions')
     
@@ -1287,7 +1287,7 @@ class Notification(models.Model):
     title = models.CharField(max_length=255)
     message = models.TextField()
     
-    document = models.ForeignKey(Document, on_delete=models.CASCADE, null=True, blank=True)
+    document = models.ForeignKey(Hujjat, on_delete=models.CASCADE, null=True, blank=True)
     
     is_read = models.BooleanField(default=False)
     is_urgent = models.BooleanField(default=False)
@@ -1317,7 +1317,7 @@ class AuditLog(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     action = models.CharField(max_length=50, choices=ACTION_CHOICES)
-    document = models.ForeignKey(Document, on_delete=models.SET_NULL, null=True, blank=True)
+    document = models.ForeignKey(Hujjat, on_delete=models.SET_NULL, null=True, blank=True)
     metadata = models.JSONField(default=dict, blank=True)
 
     ip_address = models.GenericIPAddressField(null=True, blank=True)

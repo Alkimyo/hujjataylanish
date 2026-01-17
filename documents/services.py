@@ -13,7 +13,7 @@ class ApprovalWorkflowService:
         """Approve a document at the current step"""
         with transaction.atomic():
             # Pessimistik bloklash (bir vaqtda ikki kishi tasdiqlamasligi uchun)
-            document = models.Document.objects.select_for_update().get(id=document_id)
+            document = models.Hujjat.objects.select_for_update().get(id=document_id)
             ApprovalWorkflowService._skip_unassigned_steps(document)
             
             current_step = document.get_current_approver()
@@ -109,7 +109,7 @@ class ApprovalWorkflowService:
             raise ValidationError("Rad etish sababi kamida 5 ta belgidan iborat bo'lishi kerak")
         
         with transaction.atomic():
-            document = models.Document.objects.select_for_update().get(id=document_id)
+            document = models.Hujjat.objects.select_for_update().get(id=document_id)
             ApprovalWorkflowService._skip_unassigned_steps(document)
             
             current_step = document.get_current_approver()
@@ -283,7 +283,7 @@ class ApprovalWorkflowService:
         """
         from datetime import timedelta
         from django.utils import timezone
-        from .models import Document, ApprovalStep, ApprovalLog
+        from .models import Hujjat, ApprovalStep, ApprovalLog
         
         now = timezone.now()
         
@@ -368,7 +368,7 @@ class ApprovalWorkflowService:
                     approved_count += 1
                     
                     # System log
-                    print(f"AUTO-APPROVED: Document {document.id} step {step.step_order + 1} "
+                    print(f"AUTO-APPROVED: Hujjat {document.id} step {step.step_order + 1} "
                           f"approved after {hours_overdue:.1f} hours overdue")
                     
                 except Exception as e:
@@ -619,26 +619,26 @@ class DocumentFilterService:
         """
         # 1. Asosiy so'rovnomani foydalanuvchi roliga qarab aniqlash
         if user.role in ['admin', 'director', 'director_deputy']:
-            documents = models.Document.objects.all()
+            documents = models.Hujjat.objects.all()
         elif user.role in ['faculty_dean', 'dean_deputy']:
             if hasattr(user, 'managed_faculty') and user.managed_faculty:
-                documents = models.Document.objects.filter(uploaded_by__faculty=user.managed_faculty)
+                documents = models.Hujjat.objects.filter(uploaded_by__faculty=user.managed_faculty)
             elif user.faculty:
-                documents = models.Document.objects.filter(uploaded_by__faculty=user.faculty)
+                documents = models.Hujjat.objects.filter(uploaded_by__faculty=user.faculty)
             else:
                 # Agar dekan fakultetga biriktirilmagan bo'lsa, faqat o'zinikini ko'radi
-                documents = models.Document.objects.filter(uploaded_by=user)
+                documents = models.Hujjat.objects.filter(uploaded_by=user)
         elif user.role == 'department_head':
             if hasattr(user, 'managed_department') and user.managed_department:
-                documents = models.Document.objects.filter(uploaded_by__department=user.managed_department)
+                documents = models.Hujjat.objects.filter(uploaded_by__department=user.managed_department)
             elif user.department:
-                documents = models.Document.objects.filter(uploaded_by__department=user.department)
+                documents = models.Hujjat.objects.filter(uploaded_by__department=user.department)
             else:
                 # Agar mudir kafedraga biriktirilmagan bo'lsa, faqat o'zinikini ko'radi
-                documents = models.Document.objects.filter(uploaded_by=user)
+                documents = models.Hujjat.objects.filter(uploaded_by=user)
         else:
             # Oddiy foydalanuvchilar (student, teacher) faqat o'zi yuklagan hujjatlarni ko'radi
-            documents = models.Document.objects.filter(uploaded_by=user)
+            documents = models.Hujjat.objects.filter(uploaded_by=user)
 
         # 2. Qo'shimcha filterlarni qo'llash
         status = filters.get('status')

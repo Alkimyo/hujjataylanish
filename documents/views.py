@@ -9,7 +9,7 @@ from django.db.models import Q
 from django.db import transaction
 from django.utils import timezone
 
-from .models import Document, DocumentType, User, Faculty, Department, Program, Notification, TeachingAllocation, Subject, Group, AcademicYear, University, AuditLog, JobRun
+from .models import Hujjat, DocumentType, User, Faculty, Department, Program, Notification, TeachingAllocation, Subject, Group, AcademicYear, University, AuditLog, JobRun
 from .services import ApprovalWorkflowService, NotificationService, DocumentFilterService
 from .qr_service import QRCodeService
 from .forms import DocumentUploadForm, ProfileUpdateForm, PasswordChangeUzForm, SubjectImportForm, AllocationImportForm
@@ -106,15 +106,15 @@ def switch_role(request):
 def dashboard(request):
     user = request.user
     pending_approvals = ApprovalWorkflowService.get_pending_approvals_for_user(user)
-    my_documents = Document.objects.filter(uploaded_by=user).order_by('-uploaded_at')[:10]
+    my_documents = Hujjat.objects.filter(uploaded_by=user).order_by('-uploaded_at')[:10]
     notifications = Notification.objects.filter(recipient=user).order_by('-created_at')[:10]
     
     stats = {
         'pending_approvals': pending_approvals.count(),
-        'my_documents_total': Document.objects.filter(uploaded_by=user).count(),
-        'my_approved': Document.objects.filter(uploaded_by=user, status='approved').count(),
-        'my_pending': Document.objects.filter(uploaded_by=user, status='pending_approval').count(),
-        'my_rejected': Document.objects.filter(uploaded_by=user, status='rejected').count(),
+        'my_documents_total': Hujjat.objects.filter(uploaded_by=user).count(),
+        'my_approved': Hujjat.objects.filter(uploaded_by=user, status='approved').count(),
+        'my_pending': Hujjat.objects.filter(uploaded_by=user, status='pending_approval').count(),
+        'my_rejected': Hujjat.objects.filter(uploaded_by=user, status='rejected').count(),
         'unread_notifications': NotificationService.get_unread_count(user),
     }
     
@@ -201,26 +201,26 @@ def document_list(request):
     user = request.user
     
     if user.role in ['admin', 'director', 'director_deputy']:
-        documents = Document.objects.all()
+        documents = Hujjat.objects.all()
         
     elif user.role in ['faculty_dean', 'dean_deputy']:
         if hasattr(user, 'managed_faculty') and user.managed_faculty:
-             documents = Document.objects.filter(uploaded_by__faculty=user.managed_faculty)
+             documents = Hujjat.objects.filter(uploaded_by__faculty=user.managed_faculty)
         elif user.faculty:
-             documents = Document.objects.filter(uploaded_by__faculty=user.faculty)
+             documents = Hujjat.objects.filter(uploaded_by__faculty=user.faculty)
         else:
-             documents = Document.objects.filter(uploaded_by=user)
+             documents = Hujjat.objects.filter(uploaded_by=user)
 
     elif user.role == 'department_head':
         if hasattr(user, 'managed_department') and user.managed_department:
-             documents = Document.objects.filter(uploaded_by__department=user.managed_department)
+             documents = Hujjat.objects.filter(uploaded_by__department=user.managed_department)
         elif user.department:
-             documents = Document.objects.filter(uploaded_by__department=user.department)
+             documents = Hujjat.objects.filter(uploaded_by__department=user.department)
         else:
-             documents = Document.objects.filter(uploaded_by=user)
+             documents = Hujjat.objects.filter(uploaded_by=user)
 
     else:
-        documents = Document.objects.filter(uploaded_by=user)
+        documents = Hujjat.objects.filter(uploaded_by=user)
 
     context = {
         'document_types': DocumentType.objects.filter(is_active=True),
@@ -291,7 +291,7 @@ def document_list(request):
 def document_detail(request, document_id):
     # Optimize qilingan query (barcha bog'liqliklar bilan)
     document = get_object_or_404(
-        Document.objects.select_related(
+        Hujjat.objects.select_related(
             'document_type', 
             'uploaded_by', 
             'uploaded_by__department', 
@@ -474,7 +474,7 @@ def get_document_type_info(request, doc_type_id):
 
 @login_required
 def download_document(request, document_id):
-    document = get_object_or_404(Document, id=document_id)
+    document = get_object_or_404(Hujjat, id=document_id)
     if not request.user.can_view_document(document):
         raise PermissionDenied("Ruxsat yo'q")
     
@@ -511,7 +511,7 @@ def download_qr_code(request, document_id):
     Bu funksiya endi faqat QR rasmni emas, balki 
     QR kod va rasmiy matn qo'shilgan to'liq PDF faylni yuklab beradi.
     """
-    document = get_object_or_404(Document, id=document_id)
+    document = get_object_or_404(Hujjat, id=document_id)
     
     # 1. Ruxsatni tekshirish
     if not request.user.can_view_document(document):
@@ -686,7 +686,7 @@ def verify_document(request):
         code = request.GET.get('code', '').strip().upper()
         if not code:
             return JsonResponse({'exists': False, 'error': 'Kod kiritilmadi.'}, status=400)
-        document = Document.objects.filter(verification_code=code, status='approved').first()
+        document = Hujjat.objects.filter(verification_code=code, status='approved').first()
         if not document:
             return JsonResponse({'exists': False, 'error': 'Hujjat topilmadi.'}, status=404)
         target_file = document.final_pdf if document.final_pdf else document.file
@@ -701,7 +701,7 @@ def verify_document(request):
 
 from django.http import FileResponse
 from django.shortcuts import render
-from .models import Document
+from .models import Hujjat
 
 def verify_by_uuid(request, uuid):
     """
@@ -722,7 +722,7 @@ def verify_by_uuid(request, uuid):
             return redirect(target_file.url)
         raise FileNotFoundError("Hujjat bazada bor, lekin fayl serverda topilmadi.")
 
-    document = Document.objects.filter(uuid=uuid, status='approved').first()
+    document = Hujjat.objects.filter(uuid=uuid, status='approved').first()
     if request.method == 'GET' and request.GET.get('check') == '1':
         if not document:
             return JsonResponse({'exists': False, 'error': 'Hujjat topilmadi.'}, status=404)
@@ -742,7 +742,7 @@ def verify_by_uuid(request, uuid):
 
     if request.method == 'POST':
         code = request.POST.get('verification_code', '').strip().upper()
-        document = Document.objects.filter(verification_code=code, status='approved').first()
+        document = Hujjat.objects.filter(verification_code=code, status='approved').first()
 
         if document:
             try:
@@ -759,7 +759,7 @@ def verify_by_uuid(request, uuid):
 # API Views
 @login_required
 def api_document_status(request, document_id):
-    document = get_object_or_404(Document, id=document_id)
+    document = get_object_or_404(Hujjat, id=document_id)
     # ... logic ...
     return JsonResponse({'status': document.status})
 

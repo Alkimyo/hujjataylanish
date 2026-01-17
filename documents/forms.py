@@ -6,7 +6,7 @@ from django import forms
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth import get_user_model
 
-from .models import Document, DocumentType, Subject, AcademicYear, Group, TeachingAllocation,Program
+from .models import Hujjat, DocumentType, Subject, AcademicYear, Group, TeachingAllocation,Program
 User = get_user_model()
 
 
@@ -40,7 +40,7 @@ class DocumentUploadForm(forms.ModelForm):
     )
     
     class Meta:
-        model = Document
+        model = Hujjat
         fields = ['document_type', 'subject', 'academic_year', 'related_group', 'file', 'title', 'description']
         widgets = {
             'title': forms.TextInput(attrs={
@@ -226,7 +226,7 @@ class DocumentFilterForm(forms.Form):
     document_type = forms.ModelChoiceField(
         queryset=DocumentType.objects.filter(is_active=True),
         required=False,
-        empty_label="All Document Types",
+        empty_label="All Hujjat Types",
         widget=forms.Select(attrs={'class': 'form-control'})
     )
     
