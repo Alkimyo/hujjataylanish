@@ -1044,6 +1044,7 @@ class Document(models.Model):
     
     class Meta:
         db_table = 'documents'
+        verbose_name = 'Hujjat'
         verbose_name_plural = 'Hujjatlar'
         indexes = [
             models.Index(fields=['status', 'uploaded_by']),
