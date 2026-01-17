@@ -82,7 +82,7 @@
         <div class="card-body">
             {% if subjects %}
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle stacked-table">
                     <thead>
                         <tr>
                             <th>#</th>
@@ -96,25 +96,25 @@
                     <tbody>
                         {% for subject in subjects %}
                         <tr>
-                            <td>{{ forloop.counter }}</td>
-                            <td>
+                            <td data-label="#">{{ forloop.counter }}</td>
+                            <td data-label="Fan nomi">
                                 <div class="fw-semibold">{{ subject.name }}</div>
                                 {% if subject.code %}
                                 <small class="text-muted">{{ subject.code }}</small>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td data-label="Kredit">
                                 <span class="badge bg-info">{{ subject.credits }}</span>
                             </td>
-                            <td>
+                            <td data-label="Taqsimotlar">
                                 {% if subject.allocations_count > 0 %}
                                     <span class="badge bg-success">{{ subject.allocations_count }}</span>
                                 {% else %}
                                     <span class="badge bg-secondary">0</span>
                                 {% endif %}
                             </td>
-                            <td>{{ subject.created_at|date:"d.m.Y" }}</td>
-                            <td class="text-end">
+                            <td data-label="Qo'shilgan sana">{{ subject.created_at|date:"d.m.Y" }}</td>
+                            <td class="text-end" data-label="Amallar">
                                 <div class="btn-group btn-group-sm">
                                     <a href="{% url 'subject_edit' subject.id %}"
                                        class="btn btn-outline-primary"

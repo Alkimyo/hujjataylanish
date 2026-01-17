@@ -118,6 +118,114 @@
             padding: 30px;
         }
 
+        .content-wrapper img,
+        .content-wrapper svg,
+        .content-wrapper video,
+        .content-wrapper canvas,
+        .content-wrapper iframe {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .content-wrapper .table {
+            width: 100%;
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .content-wrapper .table thead,
+        .content-wrapper .table tbody,
+        .content-wrapper .table tr {
+            width: max-content;
+        }
+
+        .content-wrapper .form-control,
+        .content-wrapper .form-select,
+        .content-wrapper textarea,
+        .content-wrapper input,
+        .content-wrapper select {
+            max-width: 100%;
+            width: 100%;
+        }
+
+        .content-wrapper .input-group {
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        @media (min-width: 993px) {
+            .content-wrapper .table {
+                display: table;
+                overflow: visible;
+            }
+
+            .content-wrapper .table thead,
+            .content-wrapper .table tbody,
+            .content-wrapper .table tr {
+                width: auto;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stacked-table {
+                width: 100%;
+            }
+
+            .stacked-table tbody,
+            .stacked-table tr {
+                width: 100%;
+            }
+
+            .stacked-table thead {
+                display: none;
+            }
+
+            .stacked-table tr {
+                display: block;
+                border: 1px solid rgba(0, 0, 0, 0.08);
+                border-radius: 12px;
+                margin: 12px 8px;
+                padding: 6px 10px;
+                background: #fff;
+                box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+            }
+
+            .stacked-table td {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 12px;
+                border: 0;
+                padding: 8px 6px;
+            }
+
+            .stacked-table td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: var(--muted);
+                flex: 0 0 40%;
+            }
+
+            .stacked-table td.table-empty {
+                justify-content: center;
+                text-align: center;
+            }
+
+            .stacked-table td.table-empty::before {
+                content: none;
+            }
+
+            .stacked-table .text-end {
+                justify-content: flex-end;
+            }
+
+            .stacked-table .btn-group {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
         .sidebar-backdrop {
             position: fixed;
             inset: 0;

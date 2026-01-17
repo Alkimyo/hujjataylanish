@@ -2,7 +2,7 @@
     <div class="card-body p-0">
         {% if documents %}
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
+            <table class="table table-hover align-middle mb-0 stacked-table">
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3">Hujjat</th>
@@ -17,7 +17,7 @@
                 <tbody>
                     {% for document in documents %}
                     <tr>
-                        <td class="ps-3">
+                        <td class="ps-3" data-label="Hujjat">
                             <div class="d-flex align-items-center">
                                 <div class="bg-light rounded p-2 me-2 text-danger">
                                     <i class="bi bi-file-earmark-pdf fs-5"></i>
@@ -28,13 +28,13 @@
                                 </div>
                             </div>
                         </td>
-                        <td><span class="badge bg-light text-dark border">{{ document.document_type.name }}</span></td>
-                        <td>
+                        <td data-label="Turi"><span class="badge bg-light text-dark border">{{ document.document_type.name }}</span></td>
+                        <td data-label="Fan / Guruh">
                             <small class="d-block text-dark">{{ document.subject.name|default:"-" }}</small>
                             <small class="text-muted">{{ document.related_group.name|default:"-" }}</small>
                         </td>
                         
-                        <td>
+                        <td data-label="Muallif">
                             <div class="small fw-bold">
                                 {% if document.uploaded_by.first_name or document.uploaded_by.last_name %}
                                     {{ document.uploaded_by.last_name }} {{ document.uploaded_by.first_name }} {{ document.uploaded_by.middle_name|default:"" }}
@@ -46,8 +46,8 @@
                                 {{ document.uploaded_by.department.name|default:document.uploaded_by.get_role_display }}
                             </small>
                         </td>
-                        <td class="small">{{ document.uploaded_at|date:"d.m.Y" }}</td>
-                        <td>
+                        <td class="small" data-label="Sana">{{ document.uploaded_at|date:"d.m.Y" }}</td>
+                        <td data-label="Holati">
                             {% if document.status == 'approved' %}
                                 <span class="badge bg-success-subtle text-success">Tasdiqlangan</span>
                             {% elif document.status == 'rejected' %}
@@ -58,7 +58,7 @@
                                 <span class="badge bg-secondary-subtle text-secondary">Qoralama</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-3">
+                        <td class="text-end pe-3" data-label="Amallar">
                             <a href="{% url 'document_detail' document.id %}" class="btn btn-sm btn-light text-primary"><i class="bi bi-eye"></i></a>
                         </td>
                     </tr>
